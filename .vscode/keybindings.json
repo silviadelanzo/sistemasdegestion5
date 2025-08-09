@@ -1,0 +1,154 @@
+[
+    // === ATAJOS PARA DESARROLLO PHP ===
+    {
+        "key": "ctrl+shift+p",
+        "command": "workbench.action.showCommands"
+    },
+    {
+        "key": "ctrl+alt+l",
+        "command": "editor.action.formatDocument",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "ctrl+shift+r",
+        "command": "workbench.action.tasks.runTask",
+        "args": "🔄 Reiniciar Servicios XAMPP"
+    },
+    {
+        "key": "ctrl+shift+b",
+        "command": "workbench.action.tasks.runTask",
+        "args": "🌐 Abrir Proyecto en Navegador"
+    },
+    {
+        "key": "ctrl+shift+d",
+        "command": "workbench.action.tasks.runTask",
+        "args": "📊 Abrir phpMyAdmin"
+    },
+    {
+        "key": "ctrl+shift+v",
+        "command": "workbench.action.tasks.runTask",
+        "args": "🔍 Verificar Sintaxis PHP"
+    },
+    
+    // === NAVEGACIÓN RÁPIDA ===
+    {
+        "key": "ctrl+shift+e",
+        "command": "workbench.view.explorer"
+    },
+    {
+        "key": "ctrl+shift+f",
+        "command": "workbench.view.search"
+    },
+    {
+        "key": "ctrl+shift+g",
+        "command": "workbench.view.scm"
+    },
+    {
+        "key": "ctrl+shift+x",
+        "command": "workbench.view.extensions"
+    },
+    
+    // === EDICIÓN AVANZADA ===
+    {
+        "key": "ctrl+d",
+        "command": "editor.action.addSelectionToNextFindMatch",
+        "when": "editorFocus"
+    },
+    {
+        "key": "ctrl+shift+l",
+        "command": "editor.action.selectHighlights",
+        "when": "editorFocus"
+    },
+    {
+        "key": "alt+up",
+        "command": "editor.action.moveLinesUpAction",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "alt+down",
+        "command": "editor.action.moveLinesDownAction",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "shift+alt+down",
+        "command": "editor.action.copyLinesDownAction",
+        "when": "editorTextFocus"
+    },
+    {
+        "key": "shift+alt+up",
+        "command": "editor.action.copyLinesUpAction",
+        "when": "editorTextFocus"
+    },
+    
+    // === TERMINAL ===
+    {
+        "key": "ctrl+shift+t",
+        "command": "workbench.action.terminal.new"
+    },
+    {
+        "key": "ctrl+shift+k",
+        "command": "workbench.action.terminal.kill"
+    },
+    
+    // === DEBUG SHORTCUTS ===
+    {
+        "key": "ctrl+shift+q",
+        "command": "workbench.action.debug.stop",
+        "when": "inDebugMode"
+    },
+    {
+        "key": "ctrl+alt+c",
+        "command": "workbench.debug.viewlet.action.removeAllBreakpoints"
+    },
+    
+    // === SOLUCIÓN LOGIN Y DEBUG ===
+    {
+        "key": "ctrl+alt+shift+l",
+        "command": "workbench.action.tasks.runTask",
+        "args": "🚨 Solucionar Login y Debug"
+    },
+    {
+        "key": "ctrl+alt+shift+r",
+        "command": "workbench.action.tasks.runTask",
+        "args": "🔄 Reiniciar Apache y Limpiar"
+    },
+    
+    // === ATAJOS PARA BACKUPS CON CONDICIONES ===
+    {
+        "key": "f5",
+        "command": "workbench.action.tasks.runTask",
+        "args": "⚡ Backup Emergency Smart",
+        "when": "!inDebugMode && !debuggersAvailable"
+    },
+    {
+        "key": "ctrl+alt+f5",
+        "command": "workbench.action.tasks.runTask",
+        "args": "⚡ Backup Emergency Smart",
+        "when": "inDebugMode"
+    },
+    {
+        "key": "shift+f5",
+        "command": "workbench.action.debug.start",
+        "when": "!inDebugMode && debuggersAvailable"
+    },
+    {
+        "key": "ctrl+alt+b",
+        "command": "workbench.action.tasks.runTask",
+        "args": "⚡ Backup Emergency Smart"
+    },
+    {
+        "key": "f6",
+        "command": "workbench.action.tasks.runTask",
+        "args": "⚡ Backup Emergency Smart"
+    },
+    {
+        "key": "ctrl+f6",
+        "command": "workbench.action.tasks.runTask",
+        "args": "🔄 Backup Manual Rápido"
+    },
+    {
+        "key": "ctrl+shift+f6",
+        "command": "workbench.action.tasks.runTask",
+        "args": "📊 Ver Estadísticas de Backups"
+    }
+]

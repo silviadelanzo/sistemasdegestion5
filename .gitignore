@@ -1,0 +1,37 @@
+﻿# Archivos de configuracion local
+config/config.php
+*.local.php
+
+# Archivos temporales
+*.tmp
+*.temp
+*~
+*.bak
+*.cache
+*.log
+
+# Uploads y archivos generados
+assets/uploads/*
+!assets/uploads/.gitkeep
+assets/scanner_input/*
+!assets/scanner_input/.gitkeep
+assets/scanner_processed/*
+!assets/scanner_processed/.gitkeep
+
+# Backups
+*.zip
+backups/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Composer (si se usa)
+vendor/
+composer.lock

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Prueba Sistema Mejorado - Países Telefónicos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .demo-container {
+            max-width: 900px;
+            margin: 20px auto;
+        }
+
+        .feature-card {
+            border-left: 4px solid #007bff;
+            padding: 20px;
+            margin: 15px 0;
+            background: #f8f9fa;
+        }
+
+        .success-card {
+            border-color: #28a745;
+        }
+
+        .info-card {
+            border-color: #17a2b8;
+        }
+
+        .warning-card {
+            border-color: #ffc107;
+        }
+
+        .test-step {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container demo-container">
+        <h1 class="text-center text-primary mb-4">🎯 Sistema Telefónico Mejorado</h1>
+
+        <div class="feature-card success-card">
+            <h3>✅ MEJORAS IMPLEMENTADAS</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>🎨 Interfaz Simplificada:</h5>
+                    <ul>
+                        <li>✂️ <strong>Sin abreviaturas</strong>: Solo "🇦🇷 Argentina" (no "AR Argentina (+54)")</li>
+                        <li>🎯 <strong>Selección inteligente</strong>: Al elegir país → código en input automáticamente
+                        </li>
+                        <li>🔄 <strong>Sincronización</strong>: Agregar en Teléfono → aparece en WhatsApp</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5>🤖 Funcionalidad Automática:</h5>
+                    <ul>
+                        <li>🏳️ <strong>Solo pide nombre</strong>: Sistema busca código automáticamente</li>
+                        <li>📞 <strong>Código en input</strong>: Muestra "+54" en lugar de "Argentina"</li>
+                        <li>🛡️ <strong>Validación robusta</strong>: Evita duplicados por nombre y código</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-card info-card">
+            <h3>🔍 BASE DE DATOS AMPLIADA</h3>
+            <p>El sistema ahora incluye <strong>100+ países</strong> con búsqueda automática:</p>
+            <div class="row">
+                <div class="col-md-3">
+                    <h6>🇪🇺 Europa:</h6>
+                    <small>Luxemburgo (+352), Suiza (+41), Austria (+43), Bélgica (+32), Holanda (+31)...</small>
+                </div>
+                <div class="col-md-3">
+                    <h6>🌏 Asia:</h6>
+                    <small>India (+91), Japón (+81), China (+86), Singapur (+65), Tailandia (+66)...</small>
+                </div>
+                <div class="col-md-3">
+                    <h6>🌍 África:</h6>
+                    <small>Sudáfrica (+27), Egipto (+20), Marruecos (+212), Kenia (+254)...</small>
+                </div>
+                <div class="col-md-3">
+                    <h6>🌏 Oceanía:</h6>
+                    <small>Australia (+61), Nueva Zelanda (+64), Fiji (+679)...</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-card warning-card">
+            <h3>🧪 GUÍA DE PRUEBAS</h3>
+
+            <div class="test-step">
+                <h5>📋 Paso 1: Verificar Formato Simplificado</h5>
+                <p><strong>Acción:</strong> Abrir modal de proveedor y revisar selectores</p>
+                <p><strong>Resultado esperado:</strong> Ver "🇦🇷 Argentina", "🇪🇸 España" (sin códigos (+XX))</p>
+            </div>
+
+            <div class="test-step">
+                <h5>📱 Paso 2: Probar Selección Automática</h5>
+                <p><strong>Acción:</strong> Seleccionar "🇲🇽 México" en selector de teléfono</p>
+                <p><strong>Resultado esperado:</strong> Input de teléfono muestre "+52" automáticamente</p>
+            </div>
+
+            <div class="test-step">
+                <h5>🆕 Paso 3: Agregar País Nuevo (Solo Nombre)</h5>
+                <p><strong>Acción:</strong> Seleccionar "➕ Agregar Nuevo País" → escribir "Luxemburgo"</p>
+                <p><strong>Resultado esperado:</strong> Sistema encuentra "+352" automáticamente</p>
+            </div>
+
+            <div class="test-step">
+                <h5>🔄 Paso 4: Verificar Sincronización</h5>
+                <p><strong>Acción:</strong> Agregar país en selector de teléfono</p>
+                <p><strong>Resultado esperado:</strong> El mismo país aparece en selector de WhatsApp</p>
+            </div>
+
+            <div class="test-step">
+                <h5>🛡️ Paso 5: Probar Validaciones</h5>
+                <p><strong>Acción:</strong> Intentar agregar "Argentina" (ya existe)</p>
+                <p><strong>Resultado esperado:</strong> Error: "❌ El país Argentina ya existe en la lista"</p>
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <h3>🎯 PAÍSES DISPONIBLES PARA PRUEBA</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <h6>🔥 Recomendados para probar:</h6>
+                    <ul class="list-unstyled">
+                        <li>✅ Luxemburgo → +352</li>
+                        <li>✅ Suiza → +41</li>
+                        <li>✅ Austria → +43</li>
+                        <li>✅ Bélgica → +32</li>
+                        <li>✅ Holanda → +31</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>🌏 Opciones exóticas:</h6>
+                    <ul class="list-unstyled">
+                        <li>✅ Singapur → +65</li>
+                        <li>✅ Maldivas → +960</li>
+                        <li>✅ Seychelles → +248</li>
+                        <li>✅ Luxemburgo → +352</li>
+                        <li>✅ Malta → +356</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h6>❌ Nombres que fallarán:</h6>
+                    <ul class="list-unstyled">
+                        <li>❌ "País Inventado"</li>
+                        <li>❌ "Atlantida"</li>
+                        <li>❌ "Argentina" (duplicado)</li>
+                        <li>❌ "España" (duplicado)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="modulos/compras/proveedores.php" target="_blank" class="btn btn-primary btn-lg me-3">
+                🚀 Probar Sistema de Proveedores
+            </a>
+            <button onclick="location.reload()" class="btn btn-info btn-lg">
+                🔄 Recargar Guía
+            </button>
+        </div>
+
+        <div class="alert alert-success mt-4">
+            <h5>🎉 RESUMEN DE MEJORAS:</h5>
+            <p class="mb-0">
+                ✅ <strong>Interfaz simplificada</strong> sin códigos telefónicos en los nombres<br>
+                ✅ <strong>Solo pide nombre del país</strong>, sistema busca código automáticamente<br>
+                ✅ <strong>Al seleccionar país</strong>, código aparece en input de teléfono<br>
+                ✅ <strong>Sincronización inteligente</strong> entre selectores de teléfono y WhatsApp<br>
+                ✅ <strong>Base de datos expandida</strong> con 100+ países disponibles
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

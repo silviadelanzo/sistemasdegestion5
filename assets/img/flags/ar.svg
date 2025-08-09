@@ -1,0 +1,5 @@
+<!-- Placeholder para banderas -->
+<svg width="20" height="15" xmlns="http://www.w3.org/2000/svg">
+  <rect width="20" height="15" fill="#74B5FF"/>
+  <text x="10" y="11" font-family="Arial" font-size="8" text-anchor="middle" fill="white">AR</text>
+</svg>

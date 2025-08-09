@@ -1,0 +1,217 @@
+-- ================================================
+-- SCRIPT PARA AGREGAR CAMPOS WHATSAPP Y BANDERAS
+-- Sistema de Gestión - Actualización de Tablas
+-- ================================================
+
+-- 1. AGREGAR CAMPO WHATSAPP A PROVEEDORES
+-- ========================================
+ALTER TABLE proveedores 
+ADD COLUMN whatsapp VARCHAR(20) NULL COMMENT 'Número WhatsApp internacional (solo números)' 
+AFTER telefono;
+
+-- Agregar índice para búsquedas rápidas
+CREATE INDEX idx_proveedores_whatsapp ON proveedores(whatsapp);
+
+-- 2. AGREGAR CAMPO WHATSAPP A CLIENTES  
+-- =====================================
+ALTER TABLE clientes 
+ADD COLUMN whatsapp VARCHAR(20) NULL COMMENT 'Número WhatsApp internacional (solo números)' 
+AFTER telefono;
+
+-- Agregar índice para búsquedas rápidas
+CREATE INDEX idx_clientes_whatsapp ON clientes(whatsapp);
+
+-- 3. ACTUALIZAR TABLA PAÍSES CON BANDERAS Y CÓDIGOS
+-- =================================================
+
+-- Agregar campo para emoji de bandera
+ALTER TABLE paises 
+ADD COLUMN bandera_emoji VARCHAR(10) NULL COMMENT 'Emoji de la bandera del país' 
+AFTER nombre;
+
+-- Agregar código ISO de 2 letras
+ALTER TABLE paises 
+ADD COLUMN codigo_iso2 CHAR(2) NULL COMMENT 'Código ISO de 2 letras (AR, BR, US)' 
+AFTER bandera_emoji;
+
+-- Agregar código ISO de 3 letras  
+ALTER TABLE paises 
+ADD COLUMN codigo_iso3 CHAR(3) NULL COMMENT 'Código ISO de 3 letras (ARG, BRA, USA)' 
+AFTER codigo_iso2;
+
+-- Agregar código telefónico internacional
+ALTER TABLE paises 
+ADD COLUMN codigo_telefono VARCHAR(5) NULL COMMENT 'Código telefónico internacional (+54, +55, +1)' 
+AFTER codigo_iso3;
+
+-- Agregar índices para códigos
+CREATE INDEX idx_paises_iso2 ON paises(codigo_iso2);
+CREATE INDEX idx_paises_iso3 ON paises(codigo_iso3);
+CREATE INDEX idx_paises_telefono ON paises(codigo_telefono);
+
+-- 4. INSERTAR DATOS BÁSICOS DE PAÍSES PRINCIPALES
+-- ===============================================
+
+-- Actualizar Argentina
+UPDATE paises SET 
+    bandera_emoji = '🇦🇷',
+    codigo_iso2 = 'AR', 
+    codigo_iso3 = 'ARG',
+    codigo_telefono = '+54'
+WHERE nombre = 'Argentina' OR nombre LIKE '%argentina%';
+
+-- Actualizar Brasil  
+UPDATE paises SET 
+    bandera_emoji = '🇧🇷',
+    codigo_iso2 = 'BR',
+    codigo_iso3 = 'BRA', 
+    codigo_telefono = '+55'
+WHERE nombre = 'Brasil' OR nombre LIKE '%brasil%';
+
+-- Actualizar Chile
+UPDATE paises SET 
+    bandera_emoji = '🇨🇱',
+    codigo_iso2 = 'CL',
+    codigo_iso3 = 'CHL',
+    codigo_telefono = '+56' 
+WHERE nombre = 'Chile' OR nombre LIKE '%chile%';
+
+-- Actualizar Uruguay
+UPDATE paises SET 
+    bandera_emoji = '🇺🇾',
+    codigo_iso2 = 'UY',
+    codigo_iso3 = 'URY',
+    codigo_telefono = '+598'
+WHERE nombre = 'Uruguay' OR nombre LIKE '%uruguay%';
+
+-- Actualizar Paraguay
+UPDATE paises SET 
+    bandera_emoji = '🇵🇾',
+    codigo_iso2 = 'PY', 
+    codigo_iso3 = 'PRY',
+    codigo_telefono = '+595'
+WHERE nombre = 'Paraguay' OR nombre LIKE '%paraguay%';
+
+-- Actualizar Estados Unidos
+UPDATE paises SET 
+    bandera_emoji = '🇺🇸',
+    codigo_iso2 = 'US',
+    codigo_iso3 = 'USA', 
+    codigo_telefono = '+1'
+WHERE nombre = 'Estados Unidos' OR nombre LIKE '%estados unidos%' OR nombre LIKE '%usa%';
+
+-- 5. CREAR FUNCIÓN PARA VALIDAR FORMATO WHATSAPP
+-- ==============================================
+
+DELIMITER //
+
+CREATE FUNCTION validar_whatsapp(numero VARCHAR(20)) 
+RETURNS BOOLEAN
+READS SQL DATA
+DETERMINISTIC
+COMMENT 'Valida formato de número WhatsApp internacional'
+BEGIN
+    -- El número debe tener entre 10 y 15 dígitos
+    -- Puede empezar con + opcional
+    -- Solo números después del +
+    
+    DECLARE numero_limpio VARCHAR(20);
+    
+    -- Limpiar el número (quitar espacios, guiones, paréntesis)
+    SET numero_limpio = REPLACE(REPLACE(REPLACE(REPLACE(numero, ' ', ''), '-', ''), '(', ''), ')', '');
+    
+    -- Quitar el + del inicio si existe
+    IF LEFT(numero_limpio, 1) = '+' THEN
+        SET numero_limpio = SUBSTRING(numero_limpio, 2);
+    END IF;
+    
+    -- Verificar que solo contenga números y tenga longitud correcta
+    IF numero_limpio REGEXP '^[0-9]{10,15}$' THEN
+        RETURN TRUE;
+    ELSE
+        RETURN FALSE;
+    END IF;
+END//
+
+DELIMITER ;
+
+-- 6. CREAR TRIGGERS PARA VALIDACIÓN AUTOMÁTICA
+-- ============================================
+
+-- Trigger para proveedores
+DELIMITER //
+
+CREATE TRIGGER tr_proveedores_whatsapp_insert
+    BEFORE INSERT ON proveedores
+    FOR EACH ROW
+BEGIN
+    IF NEW.whatsapp IS NOT NULL AND NEW.whatsapp != '' THEN
+        IF NOT validar_whatsapp(NEW.whatsapp) THEN
+            SIGNAL SQLSTATE '45000' 
+            SET MESSAGE_TEXT = 'Formato de WhatsApp inválido. Use solo números (10-15 dígitos)';
+        END IF;
+    END IF;
+END//
+
+CREATE TRIGGER tr_proveedores_whatsapp_update
+    BEFORE UPDATE ON proveedores  
+    FOR EACH ROW
+BEGIN
+    IF NEW.whatsapp IS NOT NULL AND NEW.whatsapp != '' THEN
+        IF NOT validar_whatsapp(NEW.whatsapp) THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Formato de WhatsApp inválido. Use solo números (10-15 dígitos)';
+        END IF;
+    END IF;
+END//
+
+-- Trigger para clientes
+CREATE TRIGGER tr_clientes_whatsapp_insert
+    BEFORE INSERT ON clientes
+    FOR EACH ROW  
+BEGIN
+    IF NEW.whatsapp IS NOT NULL AND NEW.whatsapp != '' THEN
+        IF NOT validar_whatsapp(NEW.whatsapp) THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Formato de WhatsApp inválido. Use solo números (10-15 dígitos)';
+        END IF;
+    END IF;
+END//
+
+CREATE TRIGGER tr_clientes_whatsapp_update
+    BEFORE UPDATE ON clientes
+    FOR EACH ROW
+BEGIN  
+    IF NEW.whatsapp IS NOT NULL AND NEW.whatsapp != '' THEN
+        IF NOT validar_whatsapp(NEW.whatsapp) THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Formato de WhatsApp inválido. Use solo números (10-15 dígitos)';
+        END IF;
+    END IF;
+END//
+
+DELIMITER ;
+
+-- 7. VERIFICACIÓN FINAL
+-- =====================
+
+-- Mostrar estructura actualizada de proveedores
+SELECT 'ESTRUCTURA PROVEEDORES:' as info;
+DESCRIBE proveedores;
+
+-- Mostrar estructura actualizada de clientes  
+SELECT 'ESTRUCTURA CLIENTES:' as info;
+DESCRIBE clientes;
+
+-- Mostrar estructura actualizada de países
+SELECT 'ESTRUCTURA PAÍSES:' as info; 
+DESCRIBE paises;
+
+-- Mostrar países con datos actualizados
+SELECT 'PAÍSES CON BANDERAS:' as info;
+SELECT id, nombre, bandera_emoji, codigo_iso2, codigo_telefono 
+FROM paises 
+WHERE codigo_iso2 IS NOT NULL 
+ORDER BY nombre;
+
+SELECT '✅ ACTUALIZACIÓN COMPLETADA - WHATSAPP Y BANDERAS AGREGADOS' as resultado;

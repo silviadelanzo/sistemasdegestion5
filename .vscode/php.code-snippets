@@ -1,0 +1,162 @@
+{
+    "PHP Header Template": {
+        "prefix": ["phpheader", "header"],
+        "body": [
+            "<?php",
+            "require_once '../../config/config.php';",
+            "",
+            "iniciarSesionSegura();",
+            "requireLogin('../../login.php');",
+            "",
+            "// --- Variables de la página ---",
+            "\\$usuario_nombre = \\$_SESSION['nombre_usuario'] ?? 'Usuario';",
+            "\\$usuario_rol = \\$_SESSION['rol_usuario'] ?? 'inventario';",
+            "\\$es_administrador = (\\$usuario_rol === 'admin' || \\$usuario_rol === 'administrador');",
+            "",
+            "try {",
+            "    \\$pdo = conectarDB();",
+            "    \\$pdo->exec(\"SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci\");",
+            "    ",
+            "    $0",
+            "    ",
+            "} catch (Exception \\$e) {",
+            "    \\$error = \"Error: \" . \\$e->getMessage();",
+            "}",
+            "?>"
+        ],
+        "description": "Template básico para páginas PHP del sistema"
+    },
+    
+    "HTML Bootstrap Template": {
+        "prefix": ["htmlbs", "bootstrap"],
+        "body": [
+            "<!DOCTYPE html>",
+            "<html lang=\"es\">",
+            "<head>",
+            "    <meta charset=\"UTF-8\">",
+            "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">",
+            "    <title>$1 - <?php echo SISTEMA_NOMBRE; ?></title>",
+            "    <link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css\" rel=\"stylesheet\">",
+            "    <link href=\"https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css\" rel=\"stylesheet\">",
+            "</head>",
+            "<body class=\"bg-light\">",
+            "    $0",
+            "    <script src=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js\"></script>",
+            "</body>",
+            "</html>"
+        ],
+        "description": "Template HTML con Bootstrap 5"
+    },
+    
+    "Database Query Template": {
+        "prefix": ["dbquery", "query"],
+        "body": [
+            "try {",
+            "    \\$stmt = \\$pdo->prepare(\"$1\");",
+            "    \\$stmt->execute([$2]);",
+            "    \\$resultado = \\$stmt->fetchAll(PDO::FETCH_ASSOC);",
+            "    $0",
+            "} catch (PDOException \\$e) {",
+            "    error_log(\"Error en consulta: \" . \\$e->getMessage());",
+            "    \\$error = \"Error al procesar la consulta\";",
+            "}"
+        ],
+        "description": "Template para consultas a la base de datos"
+    },
+    
+    "Form Validation": {
+        "prefix": ["validate", "validation"],
+        "body": [
+            "if (\\$_SERVER['REQUEST_METHOD'] === 'POST') {",
+            "    \\$errores = [];",
+            "    ",
+            "    // Validar $1",
+            "    if (empty(\\$_POST['$1'])) {",
+            "        \\$errores[] = \"El campo $1 es obligatorio\";",
+            "    }",
+            "    ",
+            "    if (empty(\\$errores)) {",
+            "        // Procesar formulario",
+            "        $0",
+            "    }",
+            "}"
+        ],
+        "description": "Template para validación de formularios"
+    },
+    
+    "Ajax Response": {
+        "prefix": ["ajax", "ajaxresponse"],
+        "body": [
+            "header('Content-Type: application/json');",
+            "",
+            "try {",
+            "    $0",
+            "    echo json_encode(['success' => true, 'message' => 'Operación exitosa']);",
+            "} catch (Exception \\$e) {",
+            "    http_response_code(500);",
+            "    echo json_encode(['success' => false, 'error' => \\$e->getMessage()]);",
+            "}"
+        ],
+        "description": "Template para respuestas AJAX"
+    },
+    
+    "Bootstrap Card": {
+        "prefix": ["card", "bscard"],
+        "body": [
+            "<div class=\"card\">",
+            "    <div class=\"card-header\">",
+            "        <h5 class=\"mb-0\"><i class=\"bi bi-$1 me-2\"></i>$2</h5>",
+            "    </div>",
+            "    <div class=\"card-body\">",
+            "        $0",
+            "    </div>",
+            "</div>"
+        ],
+        "description": "Card de Bootstrap con icono"
+    },
+    
+    "Bootstrap Table": {
+        "prefix": ["table", "bstable"],
+        "body": [
+            "<div class=\"table-responsive\">",
+            "    <table class=\"table table-striped\">",
+            "        <thead>",
+            "            <tr>",
+            "                <th>$1</th>",
+            "                <th>Acciones</th>",
+            "            </tr>",
+            "        </thead>",
+            "        <tbody>",
+            "            <?php foreach (\\$$2 as \\$$3): ?>",
+            "                <tr>",
+            "                    <td><?php echo htmlspecialchars(\\$$3['$4']); ?></td>",
+            "                    <td>$0</td>",
+            "                </tr>",
+            "            <?php endforeach; ?>",
+            "        </tbody>",
+            "    </table>",
+            "</div>"
+        ],
+        "description": "Tabla de Bootstrap con PHP"
+    },
+    
+    "PHP Class Template": {
+        "prefix": ["class", "phpclass"],
+        "body": [
+            "<?php",
+            "",
+            "class $1 {",
+            "    private \\$pdo;",
+            "    ",
+            "    public function __construct(\\$pdo) {",
+            "        \\$this->pdo = \\$pdo;",
+            "    }",
+            "    ",
+            "    $0",
+            "}",
+            "",
+            "?>"
+        ],
+        "description": "Template básico para clases PHP"
+    }
+}

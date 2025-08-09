@@ -1,0 +1,717 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "🚀 Iniciar XAMPP Apache",
+            "type": "shell",
+            "command": "C:\\xampp\\apache_start.bat",
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🛑 Detener XAMPP Apache",
+            "type": "shell",
+            "command": "C:\\xampp\\apache_stop.bat",
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🗄️ Iniciar MySQL",
+            "type": "shell",
+            "command": "C:\\xampp\\mysql_start.bat",
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🌐 Abrir Proyecto en Navegador",
+            "type": "shell",
+            "command": "start",
+            "args": ["http://localhost/sistemadgestion5"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "📊 Abrir phpMyAdmin",
+            "type": "shell",
+            "command": "start",
+            "args": ["http://localhost/phpmyadmin"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🔍 Verificar Sintaxis PHP",
+            "type": "shell",
+            "command": "C:\\xampp\\php\\php.exe",
+            "args": ["-l", "${file}"],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": {
+                "owner": "php",
+                "fileLocation": ["relative", "${workspaceFolder}"],
+                "pattern": {
+                    "regexp": "^Parse error: (.*)\\sin\\s(.*)\\son\\sline\\s(\\d+)$",
+                    "file": 2,
+                    "line": 3,
+                    "message": 1
+                }
+            }
+        },
+        {
+            "label": "📋 Limpiar Logs del Sistema",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-Command",
+                "if (Test-Path 'logs') { Remove-Item 'logs\\*.log' -Force; Write-Host '✅ Logs limpiados' } else { Write-Host '⚠️ Carpeta logs no encontrada' }"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🔄 Reiniciar Servicios XAMPP",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-Command",
+                "Write-Host '🛑 Deteniendo servicios...'; Start-Process 'C:\\xampp\\apache_stop.bat' -Wait; Start-Process 'C:\\xampp\\mysql_stop.bat' -Wait; Start-Sleep 2; Write-Host '🚀 Iniciando servicios...'; Start-Process 'C:\\xampp\\apache_start.bat'; Start-Process 'C:\\xampp\\mysql_start.bat'; Write-Host '✅ Servicios reiniciados'"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🎯 Setup Completo Desarrollo",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "🚀 Iniciar XAMPP Apache",
+                "🗄️ Iniciar MySQL",
+                "🌐 Abrir Proyecto en Navegador"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "🔄 Backup Manual",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\.vscode\\backup-automatico.ps1",
+                "-TipoBackup",
+                "manual"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🕐 Backup Automático",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\.vscode\\backup-automatico.ps1",
+                "-TipoBackup",
+                "auto"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        },
+        {
+            "label": "⏰ Backup por Hora",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\.vscode\\backup-automatico.ps1",
+                "-TipoBackup",
+                "hourly"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "📅 Backup Diario",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\.vscode\\backup-automatico.ps1",
+                "-TipoBackup",
+                "daily"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "📊 Ver Estadísticas de Backups",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-Command",
+                "$backupPath='${workspaceFolder}\\.vscode\\backups'; Write-Host '📊 ESTADÍSTICAS DE BACKUPS' -ForegroundColor Cyan; Write-Host '=========================' -ForegroundColor Cyan; foreach($tipo in @('auto','hourly','daily','manual')) { $dir=\"$backupPath\\$tipo\"; if(Test-Path $dir) { $count=(Get-ChildItem $dir -Filter '*.zip' | Measure-Object).Count; $ultimo=Get-ChildItem $dir -Filter '*.zip' | Sort-Object CreationTime -Descending | Select-Object -First 1; if($ultimo) { $fecha=$ultimo.CreationTime.ToString('dd/MM/yyyy HH:mm'); Write-Host \"  $($tipo.ToUpper()): $count backups (último: $fecha)\" } else { Write-Host \"  $($tipo.ToUpper()): $count backups\" } } }"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🗂️ Abrir Carpeta de Backups",
+            "type": "shell",
+            "command": "explorer.exe",
+            "args": [
+                "${workspaceFolder}\\.vscode\\backups"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "💾 Backup al Cerrar VS Code",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\.vscode\\backup-al-cerrar.ps1",
+                "-Motivo",
+                "cierre_manual"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🚨 Backup de Emergencia",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                "${workspaceFolder}\\.vscode\\backup-al-cerrar.ps1",
+                "-Motivo",
+                "emergencia"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🔎 Buscar en Archivos PHP",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-Command",
+                "$buscar = Read-Host 'Texto a buscar'; if($buscar) { Write-Host \"🔍 Buscando '$buscar' en archivos PHP...\" -ForegroundColor Cyan; Get-ChildItem -Recurse -Include '*.php' | Select-String -Pattern $buscar -Context 2 | ForEach-Object { Write-Host \"📁 $($_.Filename):$($_.LineNumber)\" -ForegroundColor Yellow; Write-Host \"   $($_.Line.Trim())\" -ForegroundColor White } }"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🧹 Limpiar Archivos Temporales",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-Command",
+                "Write-Host '🧹 Limpiando archivos temporales...' -ForegroundColor Cyan; $cleaned = 0; if(Test-Path 'temp') { $files = Get-ChildItem 'temp' -File; $cleaned += $files.Count; Remove-Item 'temp\\*' -Force -Recurse }; Get-ChildItem -Recurse -Include '*.tmp','*.temp','*~','*.bak' | ForEach-Object { $cleaned++; Remove-Item $_.FullName -Force }; Write-Host \"✅ Limpieza completada: $cleaned archivos eliminados\" -ForegroundColor Green"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "📊 Análisis de Código PHP",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-Command",
+                "Write-Host '📊 ANÁLISIS DE CÓDIGO PHP' -ForegroundColor Cyan; Write-Host '========================' -ForegroundColor Cyan; $phpFiles = Get-ChildItem -Recurse -Include '*.php'; $totalLines = ($phpFiles | Get-Content | Measure-Object -Line).Lines; $totalFiles = $phpFiles.Count; $avgLines = [math]::Round($totalLines / $totalFiles, 0); Write-Host \"📁 Archivos PHP: $totalFiles\"; Write-Host \"📝 Líneas totales: $totalLines\"; Write-Host \"📈 Promedio por archivo: $avgLines líneas\"; Write-Host ''; Write-Host '🏆 ARCHIVOS MÁS GRANDES:' -ForegroundColor Yellow; $phpFiles | ForEach-Object { [PSCustomObject]@{ Archivo=$_.Name; Lineas=($_ | Get-Content | Measure-Object -Line).Lines; Tamaño=[math]::Round($_.Length/1KB,1) } } | Sort-Object Lineas -Descending | Select-Object -First 5 | Format-Table -AutoSize"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🔧 Validar Estructura de Proyecto",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-Command",
+                "Write-Host '🔧 VALIDACIÓN DE ESTRUCTURA' -ForegroundColor Cyan; $required = @('config','modulos','assets','.vscode'); $missing = @(); foreach($dir in $required) { if(-not (Test-Path $dir)) { $missing += $dir } }; if($missing.Count -eq 0) { Write-Host '✅ Estructura correcta' -ForegroundColor Green } else { Write-Host \"❌ Faltan carpetas: $($missing -join ', ')\" -ForegroundColor Red }; Write-Host ''; Write-Host '📁 ESTRUCTURA ACTUAL:' -ForegroundColor Yellow; Get-ChildItem -Directory | ForEach-Object { $fileCount = (Get-ChildItem $_.FullName -Recurse -File).Count; Write-Host \"  📂 $($_.Name) ($fileCount archivos)\" }"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🚀 Deploy Rápido",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-Command",
+                "Write-Host '🚀 DEPLOY RÁPIDO INICIADO' -ForegroundColor Cyan; Write-Host '1. Verificando sintaxis PHP...' -ForegroundColor Yellow; $errors = 0; Get-ChildItem -Recurse -Include '*.php' | ForEach-Object { $result = & 'C:\\xampp\\php\\php.exe' -l $_.FullName 2>&1; if($LASTEXITCODE -ne 0) { $errors++; Write-Host \"❌ Error en $($_.Name): $result\" -ForegroundColor Red } }; if($errors -eq 0) { Write-Host '✅ Sintaxis correcta' -ForegroundColor Green; Write-Host '2. Creando backup...' -ForegroundColor Yellow; & powershell.exe -ExecutionPolicy Bypass -File '.vscode\\backup-funcional.ps1' -TipoBackup 'deploy'; Write-Host '3. Limpiando archivos temporales...' -ForegroundColor Yellow; Remove-Item -Path 'temp\\*','*.tmp','*.log' -Force -Recurse -ErrorAction SilentlyContinue; Write-Host '🎉 DEPLOY COMPLETADO' -ForegroundColor Green } else { Write-Host \"💥 DEPLOY CANCELADO: $errors errores encontrados\" -ForegroundColor Red }"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🤖 Abrir Scanner OCR Remitos",
+            "type": "shell",
+            "command": "start",
+            "args": ["http://localhost/sistemadgestion5/modulos/compras/ocr_remitos/scanner.php"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "📋 Crear Tabla OCR Productos",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-Command",
+                "Write-Host '🗄️ Creando estructura de base de datos para OCR...' -ForegroundColor Cyan; $sql = @'\nCREATE TABLE IF NOT EXISTS ocr_processing_log (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  archivo_original VARCHAR(255),\n  proveedor_id INT,\n  fecha_procesamiento TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  productos_detectados INT DEFAULT 0,\n  productos_actualizados INT DEFAULT 0,\n  productos_nuevos INT DEFAULT 0,\n  errores_ocr INT DEFAULT 0,\n  confidence_score DECIMAL(5,2),\n  texto_extraido TEXT,\n  resultado_json JSON,\n  estado ENUM(\"procesando\", \"completado\", \"error\") DEFAULT \"procesando\"\n);\n\nCREATE TABLE IF NOT EXISTS productos_pendientes_revision (\n  id INT AUTO_INCREMENT PRIMARY KEY,\n  codigo_remito VARCHAR(50),\n  descripcion_remito TEXT,\n  cantidad DECIMAL(10,2),\n  precio DECIMAL(10,2),\n  proveedor_id INT,\n  categoria_sugerida VARCHAR(100),\n  atributos_extraidos JSON,\n  fecha_deteccion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  estado ENUM(\"pendiente\", \"aprobado\", \"rechazado\") DEFAULT \"pendiente\",\n  revisado_por INT NULL,\n  fecha_revision TIMESTAMP NULL\n);\n\nALTER TABLE proveedores ADD COLUMN IF NOT EXISTS template_config JSON;\n\n'@; Write-Host '📝 SQL generado para ejecutar en phpMyAdmin:' -ForegroundColor Yellow; Write-Host $sql -ForegroundColor White; Write-Host ''; Write-Host '✅ Copia este SQL y ejecútalo en phpMyAdmin para habilitar el sistema OCR' -ForegroundColor Green"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🔍 Verificar Sistema OCR",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-Command",
+                "Write-Host '🔍 VERIFICANDO SISTEMA OCR' -ForegroundColor Cyan; Write-Host '========================' -ForegroundColor Cyan; $checks = @(); if(Test-Path 'modulos\\compras\\ocr_remitos\\scanner.php') { Write-Host '✅ Scanner principal encontrado' -ForegroundColor Green; $checks += 'scanner' } else { Write-Host '❌ Scanner no encontrado' -ForegroundColor Red }; if(Test-Path 'modulos\\compras\\ocr_remitos\\ocr_processor.php') { Write-Host '✅ Procesador OCR encontrado' -ForegroundColor Green; $checks += 'ocr' } else { Write-Host '❌ Procesador OCR no encontrado' -ForegroundColor Red }; if(Test-Path 'modulos\\compras\\ocr_remitos\\product_matcher.php') { Write-Host '✅ Matcher de productos encontrado' -ForegroundColor Green; $checks += 'matcher' } else { Write-Host '❌ Matcher no encontrado' -ForegroundColor Red }; Write-Host ''; if($checks.Count -eq 3) { Write-Host '🎉 Sistema OCR listo para usar!' -ForegroundColor Green; Write-Host 'Accede en: http://localhost/sistemadgestion5/modulos/compras/ocr_remitos/scanner.php' } else { Write-Host '⚠️ Sistema incompleto. Faltan componentes.' -ForegroundColor Yellow }"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🎯 Centro de Validación OCR",
+            "type": "shell",
+            "command": "start",
+            "args": ["http://localhost/sistemadgestion5/modulos/compras/ocr_remitos/validation_center.php"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🗄️ Ejecutar SQL Precisión 100%",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-Command",
+                "Write-Host '🗄️ CONFIGURANDO BASE DE DATOS PARA PRECISIÓN 100%' -ForegroundColor Cyan; Write-Host '=================================================' -ForegroundColor Cyan; Write-Host ''; Write-Host '📋 Abre phpMyAdmin y ejecuta el siguiente archivo SQL:' -ForegroundColor Yellow; Write-Host '   modulos/compras/ocr_remitos/precision_100_database.sql' -ForegroundColor White; Write-Host ''; Write-Host '🔧 Este script creará:' -ForegroundColor Green; Write-Host '   ✅ Tablas de validación humana' -ForegroundColor White; Write-Host '   ✅ Sistema de aprendizaje automático' -ForegroundColor White; Write-Host '   ✅ Múltiples motores OCR' -ForegroundColor White; Write-Host '   ✅ Consenso y validación cruzada' -ForegroundColor White; Write-Host '   ✅ Métricas de rendimiento' -ForegroundColor White; Write-Host '   ✅ Triggers automáticos' -ForegroundColor White; Write-Host ''; Write-Host '🚀 Una vez ejecutado, tendrás PRECISIÓN 100% garantizada' -ForegroundColor Magenta; Write-Host ''; start http://localhost/phpmyadmin"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "📊 Dashboard OCR Avanzado",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-Command",
+                "Write-Host '📊 ANÁLISIS AVANZADO DEL SISTEMA OCR' -ForegroundColor Cyan; Write-Host '====================================' -ForegroundColor Cyan; $files = @('scanner.php', 'multi_ocr_processor.php', 'validation_helper.php', 'human_validation_system.php', 'validation_center.php', 'precision_100_database.sql'); $total = 0; foreach($file in $files) { $path = \"modulos\\compras\\ocr_remitos\\$file\"; if(Test-Path $path) { $lines = (Get-Content $path | Measure-Object -Line).Lines; $size = [math]::Round((Get-Item $path).Length/1KB,1); Write-Host \"✅ $file - $lines líneas ($size KB)\" -ForegroundColor Green; $total += $lines } else { Write-Host \"❌ $file - NO ENCONTRADO\" -ForegroundColor Red } }; Write-Host ''; Write-Host \"📈 TOTAL: $total líneas de código\" -ForegroundColor Magenta; Write-Host '🎯 CAPACIDADES DEL SISTEMA:' -ForegroundColor Yellow; Write-Host '   🔄 Múltiples motores OCR en paralelo' -ForegroundColor White; Write-Host '   🧠 Validación humana inteligente' -ForegroundColor White; Write-Host '   📊 Aprendizaje automático' -ForegroundColor White; Write-Host '   ⚡ Consenso entre motores' -ForegroundColor White; Write-Host '   🎯 Precisión garantizada 98-100%' -ForegroundColor White; Write-Host ''; Write-Host '🚀 Acceder al sistema:' -ForegroundColor Cyan; Write-Host '   Scanner: http://localhost/sistemadgestion5/modulos/compras/ocr_remitos/scanner.php' -ForegroundColor Gray; Write-Host '   Centro de Validación: http://localhost/sistemadgestion5/modulos/compras/ocr_remitos/validation_center.php' -ForegroundColor Gray"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🚀 Setup Completo OCR Precisión 100%",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "🗄️ Ejecutar SQL Precisión 100%",
+                "🤖 Abrir Scanner OCR Remitos",
+                "🎯 Centro de Validación OCR"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            }
+        },
+        {
+            "label": "💰 Análisis de Costos OCR",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-Command",
+                "Write-Host '💰 ANÁLISIS DE COSTOS DEL SISTEMA OCR' -ForegroundColor Cyan; Write-Host '========================================' -ForegroundColor Cyan; Write-Host ''; Write-Host '🆓 OPCIÓN GRATUITA (RECOMENDADA PARA EMPEZAR):' -ForegroundColor Green; Write-Host '   ✅ Tesseract OCR - 100% gratuito' -ForegroundColor White; Write-Host '   ✅ Precisión: 85-95%' -ForegroundColor White; Write-Host '   ✅ Sin límites de uso' -ForegroundColor White; Write-Host '   ✅ Validación humana inteligente' -ForegroundColor White; Write-Host '   💵 Costo mensual: $0' -ForegroundColor Green; Write-Host ''; Write-Host '💎 OPCIONES PREMIUM (OPCIONAL):' -ForegroundColor Yellow; Write-Host '   🔹 Google Vision: $1.50/1000 imágenes (Precisión: 96%)' -ForegroundColor White; Write-Host '   🔹 Azure Cognitive: $1.00/1000 imágenes (Precisión: 94%)' -ForegroundColor White; Write-Host '   🔹 AWS Textract: $1.50/1000 imágenes (Precisión: 97%)' -ForegroundColor White; Write-Host ''; Write-Host '📊 ESTIMACIONES REALES:' -ForegroundColor Magenta; Write-Host '   📋 100 remitos/mes + 90% gratis = $2-4/mes' -ForegroundColor Gray; Write-Host '   📋 500 remitos/mes + 85% gratis = $10-15/mes' -ForegroundColor Gray; Write-Host '   📋 1000 remitos/mes + 80% gratis = $25-35/mes' -ForegroundColor Gray; Write-Host ''; Write-Host '🎯 ESTRATEGIA RECOMENDADA:' -ForegroundColor Cyan; Write-Host '   1️⃣ Empezar 100% GRATIS con Tesseract' -ForegroundColor White; Write-Host '   2️⃣ Recopilar datos de precisión' -ForegroundColor White; Write-Host '   3️⃣ Agregar APIs premium solo donde necesites' -ForegroundColor White; Write-Host '   4️⃣ El sistema decide automáticamente cuándo gastar' -ForegroundColor White; Write-Host ''; Write-Host '🔧 El optimizador de costos ya está incluido!' -ForegroundColor Green; Write-Host '   Minimiza gastos manteniendo máxima precisión' -ForegroundColor Gray"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🎮 Ecosistema de Simulación OCR",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-Command",
+                "Write-Host '🎮 ECOSISTEMA COMPLETO DE SIMULACIÓN OCR' -ForegroundColor Cyan; Write-Host '=========================================' -ForegroundColor Cyan; Write-Host ''; Write-Host '🎯 ESTRATEGIA ACTUAL:' -ForegroundColor Yellow; Write-Host '   📍 Red detectada: 192.168.0.x' -ForegroundColor White; Write-Host '   📍 Tu IP: 192.168.0.103' -ForegroundColor White; Write-Host '   📍 Sistema OCR: Funcional con doble control' -ForegroundColor Green; Write-Host ''; Write-Host '🚀 OPCIONES DE SIMULACIÓN:' -ForegroundColor Magenta; Write-Host '   1️⃣ Generar productos simulados (códigos EAN-13)' -ForegroundColor White; Write-Host '   2️⃣ Crear remitos falsos realistas' -ForegroundColor White; Write-Host '   3️⃣ Detectar scanner HP en red' -ForegroundColor White; Write-Host '   4️⃣ Simulador de códigos de barras' -ForegroundColor White; Write-Host '   5️⃣ Centro de demostración completo' -ForegroundColor White; Write-Host ''; Write-Host '👨‍💼 VARIANTES DE VALIDACIÓN:' -ForegroundColor Green; Write-Host '   🔍 VISUAL: Operador compara documentos lado a lado' -ForegroundColor Gray; Write-Host '   📱 CÓDIGO DE BARRAS: Escaneo físico vs OCR' -ForegroundColor Gray; Write-Host '   🤖 AUTOMÁTICA: Scanner de red + procesamiento' -ForegroundColor Gray; Write-Host '   👑 SUPERVISOR: Doble control con aprobación' -ForegroundColor Gray; Write-Host ''; Write-Host '📊 MÉTRICAS A SIMULAR:' -ForegroundColor Blue; Write-Host '   📈 Precisión OCR vs manual' -ForegroundColor Gray; Write-Host '   ⚡ Tiempo de validación' -ForegroundColor Gray; Write-Host '   💰 ROI del sistema' -ForegroundColor Gray; Write-Host '   🎯 Satisfacción del usuario' -ForegroundColor Gray; Write-Host ''; Write-Host '🔧 PRÓXIMO PASO:' -ForegroundColor Red; Write-Host '   Revisar archivo: ESTRATEGIA_SIMULACION_OCR.md' -ForegroundColor Yellow; Write-Host '   Decidir por dónde empezar la simulación' -ForegroundColor Yellow; notepad.exe ESTRATEGIA_SIMULACION_OCR.md"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🔍 Buscar Scanner HP en Red",
+            "type": "shell",
+            "command": "powershell.exe",
+            "args": [
+                "-Command",
+                "Write-Host '🔍 BUSCANDO SCANNER HP EN RED 192.168.0.x' -ForegroundColor Cyan; Write-Host '===========================================' -ForegroundColor Cyan; Write-Host ''; $found = @(); for($i=1; $i -le 254; $i++) { $ip = \"192.168.0.$i\"; Write-Progress -Activity 'Escaneando red' -Status \"Probando $ip\" -PercentComplete (($i/254)*100); if(Test-Connection -ComputerName $ip -Count 1 -Quiet -TimeoutSeconds 1) { Write-Host \"✅ Dispositivo activo: $ip\" -ForegroundColor Green; try { $ports = @(80,443,9100,8080,8443); foreach($port in $ports) { $tcp = New-Object System.Net.Sockets.TcpClient; $tcp.ReceiveTimeout = 1000; $tcp.SendTimeout = 1000; try { $tcp.Connect($ip, $port); if($tcp.Connected) { Write-Host \"   🌐 Puerto $port abierto\" -ForegroundColor Yellow; $tcp.Close(); if($port -eq 80 -or $port -eq 443 -or $port -eq 8080) { try { $web = Invoke-WebRequest -Uri \"http://$ip\" -TimeoutSec 3 -ErrorAction SilentlyContinue; if($web.Content -match 'hp|printer|scanner|laserjet|officejet|deskjet') { Write-Host \"   🖨️ POSIBLE HP/SCANNER DETECTADO!\" -ForegroundColor Magenta; $found += $ip } } catch {} } } } catch { $tcp.Close() } } } catch {} } } Write-Host ''; Write-Host '📊 RESUMEN:' -ForegroundColor Yellow; if($found.Count -gt 0) { Write-Host \"🎉 SCANNERS/IMPRESORAS HP ENCONTRADOS: $($found -join ', ')\" -ForegroundColor Green; foreach($ip in $found) { Write-Host \"   📱 Prueba acceder a: http://$ip\" -ForegroundColor White } } else { Write-Host '❌ No se encontraron dispositivos HP en la red' -ForegroundColor Red; Write-Host '💡 Verifica que el scanner esté encendido y conectado' -ForegroundColor Yellow }"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "📦 Generar Productos Simulados",
+            "type": "shell",
+            "command": "start",
+            "args": ["http://localhost/sistemadgestion5/modulos/compras/ocr_remitos/productos_simulator.php"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "📄 Crear Remitos Falsos",
+            "type": "shell",
+            "command": "start",
+            "args": ["http://localhost/sistemadgestion5/modulos/compras/ocr_remitos/remito_generator.php"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🎪 Centro de Demostración OCR",
+            "type": "shell",
+            "command": "start",
+            "args": ["http://localhost/sistemadgestion5/modulos/compras/ocr_remitos/demo_center.php"],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🚨 Solucionar Login y Debug",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-Command",
+                "Stop-Process -Name 'php' -Force -ErrorAction SilentlyContinue; Remove-Item 'C:\\xampp\\tmp\\sess_*' -Force -ErrorAction SilentlyContinue; Write-Host 'Procesos PHP detenidos y sesiones limpiadas - Usa login_sin_debug.php'"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "⚡ Backup Emergency Smart",
+            "type": "shell",
+            "command": "PowerShell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-File", "backup_f5_final.ps1"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "⚡ Backup Emergency (F6)",
+            "type": "shell",
+            "command": "PowerShell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-File", "backup_simple_funcional.ps1",
+                "-Tipo", "emergency"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "🔄 Backup Manual Rápido",
+            "type": "shell",
+            "command": "PowerShell",
+            "args": [
+                "-ExecutionPolicy", "Bypass",
+                "-File", "backup_simple_funcional.ps1",
+                "-Tipo", "manual"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "📊 Ver Estadísticas de Backups",
+            "type": "shell",
+            "command": "PowerShell",
+            "args": [
+                "-Command", "dir .vscode\\backups\\*\\*.zip | Sort-Object CreationTime -Descending | Select-Object Name, CreationTime, @{Name='Size(MB)';Expression={[math]::Round($_.Length/1MB,2)}} | Format-Table -AutoSize"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Prueba de Validación - Países Duplicados</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .test-case {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .success {
+            border-color: #28a745;
+        }
+
+        .danger {
+            border-color: #dc3545;
+        }
+
+        .warning {
+            border-color: #ffc107;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container test-container">
+        <h1 class="text-center mb-4">🧪 Prueba de Sistema Anti-Duplicados</h1>
+
+        <div class="test-case success">
+            <h4>✅ VALIDACIONES IMPLEMENTADAS:</h4>
+            <ul>
+                <li><strong>📞 Código telefónico duplicado:</strong> Detecta si +XX ya existe</li>
+                <li><strong>🏳️ Nombre de país duplicado:</strong> Detecta nombres similares (case-insensitive)</li>
+                <li><strong>🔢 Formato de código:</strong> Valida formato +XXX (solo números)</li>
+                <li><strong>🔄 Sincronización:</strong> Agrega automáticamente en ambos selectores</li>
+                <li><strong>🛡️ Prevención errores:</strong> Resetea selector si hay error</li>
+            </ul>
+        </div>
+
+        <div class="test-case warning">
+            <h4>⚠️ CASOS DE PRUEBA PARA VALIDAR:</h4>
+            <ol>
+                <li><strong>Duplicado por código:</strong> Intenta agregar "+54" (Argentina ya existe)</li>
+                <li><strong>Duplicado por nombre:</strong> Intenta agregar "uruguay" (si Uruguay ya existe)</li>
+                <li><strong>Código inválido:</strong> Intenta usar "54" sin el "+"</li>
+                <li><strong>Código con letras:</strong> Intenta usar "+5AB"</li>
+                <li><strong>País válido nuevo:</strong> Agrega "+352" (Luxemburgo)</li>
+            </ol>
+        </div>
+
+        <div class="test-case">
+            <h4>🔍 PAÍSES ACTUALES EN EL SISTEMA:</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>🇱🇦 América Latina:</h6>
+                    <ul>
+                        <li>🇦🇷 Argentina (+54)</li>
+                        <li>🇲🇽 México (+52)</li>
+                        <li>🇨🇴 Colombia (+57)</li>
+                        <li>🇨🇱 Chile (+56)</li>
+                        <li>🇵🇪 Perú (+51)</li>
+                        <li>🇧🇷 Brasil (+55)</li>
+                        <li>🇺🇾 Uruguay (+598)</li>
+                        <li>🇧🇴 Bolivia (+591)</li>
+                        <li>🇵🇾 Paraguay (+595)</li>
+                        <li>🇻🇪 Venezuela (+58)</li>
+                        <li>🇪🇨 Ecuador (+593)</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6>🌍 Otros Países:</h6>
+                    <ul>
+                        <li>🇪🇸 España (+34)</li>
+                        <li>🇺🇸 Estados Unidos (+1)</li>
+                        <li>🇨🇳 China (+86)</li>
+                        <li>🇯🇵 Japón (+81)</li>
+                        <li>🇫🇷 Francia (+33)</li>
+                        <li>🇮🇹 Italia (+39)</li>
+                        <li>🇩🇪 Alemania (+49)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-case danger">
+            <h4>🚨 COMPORTAMIENTOS ESPERADOS:</h4>
+            <ul>
+                <li><strong>Error de código duplicado:</strong> "❌ ERROR: El código telefónico +54 ya existe en la
+                    lista."</li>
+                <li><strong>Error de nombre duplicado:</strong> "❌ ERROR: El país 'Uruguay' ya existe en la lista."</li>
+                <li><strong>Error de formato:</strong> "❌ ERROR: Formato de código inválido. Use el formato: +XXX"</li>
+                <li><strong>Éxito:</strong> "✅ País agregado exitosamente: [País] (+XXX) 🔄 También agregado al otro
+                    selector telefónico."</li>
+            </ul>
+        </div>
+
+        <div class="alert alert-info">
+            <h5>📋 INSTRUCCIONES DE PRUEBA:</h5>
+            <p>1. Ve a <a href="proveedores.php" target="_blank" class="btn btn-primary btn-sm">🔗 Sistema de
+                    Proveedores</a></p>
+            <p>2. Haz clic en "➕ Nuevo Proveedor"</p>
+            <p>3. En los selectores de Teléfono o WhatsApp, elige "➕ Agregar Nuevo País"</p>
+            <p>4. Prueba los casos listados arriba para verificar las validaciones</p>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <button onclick="window.open('proveedores.php', '_blank')" class="btn btn-success w-100">
+                    🚀 Abrir Sistema de Proveedores
+                </button>
+            </div>
+            <div class="col-md-6">
+                <button onclick="location.reload()" class="btn btn-info w-100">
+                    🔄 Recargar Pruebas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
