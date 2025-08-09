@@ -4,6 +4,9 @@ config/config.php
 db.php
 connect.php
 conn.php
+config/config_servidor.php
+config/config.servidor.php
+auto_login_remitos.php
 
 # Archivos temporales
 *.tmp
