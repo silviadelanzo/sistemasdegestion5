@@ -1,6 +1,9 @@
 ﻿# Archivos de configuracion local
 config/config.php
 *.local.php
+db.php
+connect.php
+conn.php
 
 # Archivos temporales
 *.tmp
@@ -20,6 +23,7 @@ assets/scanner_processed/*
 
 # Backups
 *.zip
+*.sql
 backups/
 
 # Archivos del sistema
@@ -35,3 +39,14 @@ Thumbs.db
 # Composer (si se usa)
 vendor/
 composer.lock
+
+# Archivos de configuracion de cPanel (MUY IMPORTANTE)
+.htpasswd
+.htaccess
+
+# Archivos de configuracion de base de datos (MUY IMPORTANTE)
+# Archivos que pueden contener credenciales de base de datos
+*.inc.php
+
+# Archivos de sesion (si los usas a nivel de sistema de archivos)
+/sessions
