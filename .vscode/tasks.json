@@ -115,6 +115,30 @@
 			},
 			"problemMatcher": []
 		},
+		{
+			"label": "🐳 Docker: build app",
+			"type": "shell",
+			"command": "docker",
+			"args": ["build", "-t", "sistemadgestion5:latest", "."],
+			"group": "build",
+			"presentation": { "reveal": "always", "panel": "shared" }
+		},
+		{
+			"label": "🐳 Docker: up (app+db)",
+			"type": "shell",
+			"command": "docker-compose",
+			"args": ["up", "-d", "--build"],
+			"group": "build",
+			"presentation": { "reveal": "always", "panel": "shared" }
+		},
+		{
+			"label": "🐳 Docker: down",
+			"type": "shell",
+			"command": "docker-compose",
+			"args": ["down"],
+			"group": "build",
+			"presentation": { "reveal": "always", "panel": "shared" }
+		},
 	{
 			"label": "🌎 Configurar VS Code en Español",
 			"type": "shell",
