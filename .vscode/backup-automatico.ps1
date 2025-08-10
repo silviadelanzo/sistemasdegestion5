@@ -13,7 +13,7 @@ $BackupBasePath = "$ProyectoPath\.vscode\backups"
 $Timestamp = Get-Date -Format "yyyy-MM-dd_HH-mm-ss"
 
 Write-Host ""
-Write-Host "🔧 SISTEMA DE BACKUP AUTOMÁTICO" -ForegroundColor Cyan
+Write-Host "SISTEMA DE BACKUP AUTOMATICO" -ForegroundColor Cyan
 Write-Host "=================================" -ForegroundColor Cyan
 Write-Host "Proyecto: Sistema de Gestión"
 Write-Host "Fecha: $(Get-Date -Format 'dd/MM/yyyy HH:mm:ss')"
@@ -41,7 +41,7 @@ if (!(Test-Path $ProyectoPath)) {
 }
 
 # Crear backup
-Write-Host "🔄 Creando backup $TipoBackup..." -ForegroundColor Yellow
+Write-Host "Creando backup $TipoBackup..." -ForegroundColor Yellow
 
 try {
     $DestinoBackup = Join-Path $BackupBasePath $TipoBackup
@@ -79,7 +79,7 @@ try {
         Compress-Archive -Path $ArchivosLimpios.FullName -DestinationPath $RutaBackup -Force
         
         $TamanoMB = [math]::Round((Get-Item $RutaBackup).Length / 1MB, 2)
-        Write-Host "✅ Backup creado: $NombreBackup ($TamanoMB MB)" -ForegroundColor Green
+    Write-Host "Backup creado: $NombreBackup ($TamanoMB MB)" -ForegroundColor Green
         
         # Limpiar backups antiguos según tipo
         $DiasRetener = switch ($TipoBackup.ToLower()) {
@@ -95,36 +95,36 @@ try {
             
             foreach ($archivo in $ArchivosAntiguos) {
                 Remove-Item $archivo.FullName -Force -ErrorAction SilentlyContinue
-                Write-Host "🗑️  Eliminado backup antiguo: $($archivo.Name)" -ForegroundColor DarkYellow
+                Write-Host "Eliminado backup antiguo: $($archivo.Name)" -ForegroundColor DarkYellow
             }
         }
         
         $BackupExitoso = $true
     } else {
-        Write-Host "❌ No se encontraron archivos para el backup" -ForegroundColor Red
+        Write-Host "No se encontraron archivos para el backup" -ForegroundColor Red
         $BackupExitoso = $false
     }
     
 } catch {
-    Write-Host "❌ Error al crear backup: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Error al crear backup: $($_.Exception.Message)" -ForegroundColor Red
     $BackupExitoso = $false
 }
 
 # Mostrar resumen
 Write-Host ""
-Write-Host "📊 RESUMEN DEL BACKUP" -ForegroundColor Cyan
+Write-Host "RESUMEN DEL BACKUP" -ForegroundColor Cyan
 Write-Host "===================="
 
 if ($BackupExitoso) {
-    Write-Host "✅ Backup completado exitosamente" -ForegroundColor Green
-    Write-Host "📁 Ubicación: $RutaBackup"
+    Write-Host "Backup completado exitosamente" -ForegroundColor Green
+    Write-Host "Ubicacion: $RutaBackup"
 } else {
-    Write-Host "❌ El backup falló" -ForegroundColor Red
+    Write-Host "El backup fallo" -ForegroundColor Red
 }
 
 # Mostrar estadísticas
 Write-Host ""
-Write-Host "📈 ESTADÍSTICAS DE BACKUPS:" -ForegroundColor Cyan
+Write-Host "ESTADISTICAS DE BACKUPS:" -ForegroundColor Cyan
 foreach ($tipo in @("auto", "hourly", "daily", "manual")) {
     $dirTipo = Join-Path $BackupBasePath $tipo
     if (Test-Path $dirTipo) {
@@ -133,7 +133,7 @@ foreach ($tipo in @("auto", "hourly", "daily", "manual")) {
         
         if ($ultimoBackup) {
             $fechaUltimo = $ultimoBackup.CreationTime.ToString("dd/MM/yyyy HH:mm")
-            Write-Host "  $($tipo.ToUpper()): $cantidad backups (último: $fechaUltimo)"
+            Write-Host "  $($tipo.ToUpper()): $cantidad backups (ultimo: $fechaUltimo)"
         } else {
             Write-Host "  $($tipo.ToUpper()): $cantidad backups"
         }
@@ -141,4 +141,4 @@ foreach ($tipo in @("auto", "hourly", "daily", "manual")) {
 }
 
 Write-Host ""
-Write-Host "✨ Backup automático completado" -ForegroundColor Green
+Write-Host "Backup automatico completado" -ForegroundColor Green

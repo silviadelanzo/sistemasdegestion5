@@ -1,0 +1,11 @@
+REMITO DE COMPRA - SistemaDGestion5
+Fecha: 10/08/2025
+Proveedor: PROV-0000001 - Distribuidora Central S.A.
+CUIT: 20-12345678-9
+
+CODIGO PROV. | DESCRIPCION | CANT | PRECIO
+DCE-CAR-005 | Cargador Inalámbrico Rápido | 16 | $25.00
+DCE-SIL-002 | Silla de oficina ergonómica | 11 | $85.00
+DCE-PAP-001 | Papel A4 (500 hojas) | 12 | $3.50
+
+TOTAL: $1377.00

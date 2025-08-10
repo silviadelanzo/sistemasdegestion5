@@ -350,6 +350,9 @@ $pageTitle = "Gestión de Remitos - " . SISTEMA_NOMBRE;
                                                 <?php if (!empty($remito['codigo_proveedor'])): ?>
                                                     <span class="badge bg-primary ms-1"><?= htmlspecialchars($remito['codigo_proveedor']) ?></span>
                                                 <?php endif; ?>
+                                                <?php if (!empty($remito['observaciones']) && stripos($remito['observaciones'], 'Cargado por OCR') !== false): ?>
+                                                    <span class="badge bg-info ms-1">OCR</span>
+                                                <?php endif; ?>
                                                 <?php if ($remito['nombre_comercial']): ?>
                                                     <small class="text-muted text-truncate d-block" style="max-width: 150px;"><?= htmlspecialchars($remito['nombre_comercial']) ?></small>
                                                 <?php endif; ?>
@@ -357,8 +360,8 @@ $pageTitle = "Gestión de Remitos - " . SISTEMA_NOMBRE;
                                         </div>
                                     </td>
                                     <td>
-                                        <div><b><?= date('d/m/Y', strtotime($remito['fecha_entrega'])) ?></b></div>
-                                        <small class="text-muted"><?= date('H:i', strtotime($remito['fecha_creacion'])) ?></small>
+                                        <div><b><?= htmlspecialchars(formatDateES($remito['fecha_entrega'])) ?></b></div>
+                                        <small class="text-muted"><?= htmlspecialchars(date('H:i', strtotime($remito['fecha_creacion']))) ?></small>
                                     </td>
                                     <td>
                                         <?php

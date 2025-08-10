@@ -1,0 +1,11 @@
+REMITO DE COMPRA - SistemaDGestion5
+Fecha: 10/08/2025
+Proveedor: PROV-0000002 - Alimentos del Norte S.R.L.
+CUIT: 30-87654321-2
+
+CODIGO PROV. | DESCRIPCION | CANT | PRECIO
+ALN-TAB-005 | Tablet iPad Air 10.9" | 21 | $450.00
+ALN-TEC-002 | Teclado inalámbrico | 2 | $25.00
+ALN-MON-001 | Monitor LED 24" | 23 | $120.00
+
+TOTAL: $12260.00

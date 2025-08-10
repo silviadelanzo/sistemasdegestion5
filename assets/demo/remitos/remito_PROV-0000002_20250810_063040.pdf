@@ -1,0 +1,45 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 602 >>
+stream
+BT
+/F1 12 Tf
+1 0 0 1 50 800 Tm (REMITO DE COMPRA - SistemaDGestion5) Tj
+1 0 0 1 50 784 Tm (Fecha: 10/08/2025) Tj
+1 0 0 1 50 768 Tm (Proveedor: PROV-0000002 - Alimentos del Norte S.R.L.) Tj
+1 0 0 1 50 752 Tm (CUIT: 30-87654321-2) Tj
+1 0 0 1 50 736 Tm () Tj
+1 0 0 1 50 720 Tm (CODIGO PROV. | DESCRIPCION | CANT | PRECIO) Tj
+1 0 0 1 50 704 Tm (ALN-TAB-005 | Tablet iPad Air 10.9" | 21 | $450.00) Tj
+1 0 0 1 50 688 Tm (ALN-TEC-002 | Teclado inalámbrico | 2 | $25.00) Tj
+1 0 0 1 50 672 Tm (ALN-MON-001 | Monitor LED 24" | 23 | $120.00) Tj
+1 0 0 1 50 656 Tm () Tj
+1 0 0 1 50 640 Tm (TOTAL: $12260.00) Tj
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+963
+%%EOF

@@ -1,4 +1,4 @@
-﻿{
+{
     "unwantedRecommendations":  [
                                     "felixfbecker.php-intellisense",
                                     "bmewburn.vscode-intelephense-client",
@@ -7,6 +7,7 @@
     "recommendations":  [
                             "ms-vscode.vscode-json",
                             "formulahendry.auto-rename-tag",
-                            "ms-vscode.hexeditor"
+                            "ms-vscode.hexeditor",
+                            "MS-CEINTL.vscode-language-pack-es"
                         ]
 }

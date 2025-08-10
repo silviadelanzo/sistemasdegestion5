@@ -1,0 +1,10 @@
+REMITO DE COMPRA - SistemaDGestion5
+Fecha: 10/08/2025
+Proveedor: PROV-0000003 - Tecnología Avanzada S.A.
+CUIT: 20-11223344-5
+
+CODIGO PROV. | DESCRIPCION | CANT | PRECIO
+TEC-WEB-004 | Webcam Logitech C920 HD | 20 | $65.00
+TEC-SAM-001 | Smartphone Samsung Galaxy A54 | 11 | $280.00
+
+TOTAL: $4380.00
