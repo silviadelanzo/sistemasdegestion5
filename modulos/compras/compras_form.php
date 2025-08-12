@@ -107,6 +107,7 @@ requireLogin('../../login.php');
 </head>
 
 <body>
+    <?php include '../../config/navbar_code.php'; ?>
     <div class="container-custom">
         <div class="main-card">
             <!-- Header -->
@@ -156,7 +157,7 @@ requireLogin('../../login.php');
                         </a>
                     </div>
                     <div class="col-md-6 col-lg-4">
-                        <a href="compras_ocr.php" class="text-decoration-none">
+                        <a href="ocr_popup_full.php" class="text-decoration-none">
                             <div class="card h-100 shadow-sm text-center p-4 selector-card">
                                 <div class="mb-3">
                                     <i class="fas fa-file-image fa-3x text-info"></i>
@@ -181,6 +182,7 @@ requireLogin('../../login.php');
             </div>
         </div>
     </div>
+
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
