@@ -789,18 +789,6 @@ $proveedores = $pdo->query("SELECT * FROM proveedores WHERE activo = 1 ORDER BY 
                     el.classList.remove('text-muted');
                 });
 
-                // Mostrar texto extraído real (OCR)
-                if (data.summary && data.summary.texto_concatenado) {
-                    let textoExtraido = data.summary.texto_concatenado.trim();
-                    if (!document.getElementById('texto-extraido-real')) {
-                        const card = document.createElement('div');
-                        card.className = 'card mt-4';
-                        card.innerHTML = `<div class="card-header"><i class='fas fa-eye me-2'></i>Texto extraído por OCR</div><div class="card-body"><pre id="texto-extraido-real" class="extracted-text" style="min-height:120px"></pre></div>`;
-                        document.getElementById('processing-tab').parentNode.appendChild(card);
-                    }
-                    document.getElementById('texto-extraido-real').textContent = textoExtraido;
-                }
-
                 // Usar detalles por ítem del backend y mostrar código interno asignado
                 const productos = [];
                 let codigoInternoAsignado = '';
@@ -1084,44 +1072,11 @@ Total Items: 102 unidades
             alert('Tutorial OCR próximamente...');
         }
 
-
-        // Debe estar definido el remitoId actual (puede venir de la respuesta del backend al crear el remito pendiente)
-        let remitoId = window.remitoId || null;
-
         function finalizarValidacion() {
-            if (!remitoId) {
-                alert('No se encontró el ID del remito pendiente.');
-                return;
-            }
             if (confirm('¿Confirmar la importación de todos los productos validados?')) {
-                // Construir objeto cantidades: { producto_id: cantidad }
-                const cantidades = {};
-                productosDetectados.forEach(p => {
-                    if (p.producto_id && !isNaN(p.cantidad)) {
-                        cantidades[p.producto_id] = p.cantidad;
-                    }
-                });
-                fetch('ocr_remitos/confirmar_remito.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({
-                        remito_id: remitoId,
-                        ...Object.fromEntries(Object.entries(cantidades).map(([k,v]) => [`cantidades[${k}]`, v]))
-                    })
-                })
-                .then(resp => resp.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('¡Remito confirmado y stock actualizado!');
-                        // Recargar o redirigir a la lista de remitos
-                        window.location.reload();
-                    } else {
-                        alert('Error al confirmar: ' + (data.error || 'Error desconocido'));
-                    }
-                })
-                .catch(err => {
-                    alert('Error de red: ' + err.message);
-                });
+                // Aquí se procesaría la importación final
+                alert('¡Productos importados exitosamente!');
+                // Redirigir a lista de compras
             }
         }
 

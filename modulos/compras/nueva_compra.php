@@ -165,16 +165,15 @@ $pageTitle = "Nueva Compra - Seleccionar Método - " . SISTEMA_NOMBRE;
                 </div>
             </div>
 
-            <!-- Método 3: OCR de Imagen/PDF (redirige a página dedicada) -->
+            <!-- Método 3: OCR de Imagen/PDF -->
             <div class="col-lg-4">
-                <a href="ocr_popup_full.php" style="text-decoration:none;">
-                <div class="method-card">
+                <div class="method-card" onclick="window.location.href='compra_ocr.php'">
                     <div class="method-icon">
                         <i class="bi bi-image"></i>
                     </div>
                     <h3 class="method-title">Escanear Remito</h3>
                     <p class="method-description">
-                        Procesa remitos en PDF/JPG con reconocimiento automático de productos y cantidades.
+                        Subir imagen o PDF del remito para procesamiento automático
                     </p>
                     <ul class="method-features">
                         <li>Sube JPG, PNG o PDF</li>
@@ -187,7 +186,6 @@ $pageTitle = "Nueva Compra - Seleccionar Método - " . SISTEMA_NOMBRE;
                         <i class="bi bi-camera"></i> Subir Remito
                     </button>
                 </div>
-                </a>
             </div>
         </div>
 
@@ -206,18 +204,19 @@ $pageTitle = "Nueva Compra - Seleccionar Método - " . SISTEMA_NOMBRE;
         </div>
     </div>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            // Agregar efectos de hover
-            document.querySelectorAll('.method-card').forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.background = 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)';
-                });
-                card.addEventListener('mouseleave', function() {
-                    this.style.background = 'white';
-                });
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Agregar efectos de hover
+        document.querySelectorAll('.method-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.background = 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)';
             });
-        </script>
+
+            card.addEventListener('mouseleave', function() {
+                this.style.background = 'white';
+            });
+        });
+    </script>
 </body>
 
 </html>

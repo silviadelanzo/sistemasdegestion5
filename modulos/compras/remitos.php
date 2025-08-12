@@ -366,145 +366,11 @@ $pageTitle = "Gestión de Remitos - " . SISTEMA_NOMBRE;
                                     <td>
                                         <?php
                                         $estado = $remito['estado'];
-                                        $estados_radio = [
-                                            'pendiente' => ['P', 'Pendiente', 'bg-warning', 'text-dark'],
-                                            'en_revision' => ['R', 'En Revisión', 'bg-info', 'text-dark'],
-                                            'cancelado' => ['C', 'Cancelado', 'bg-danger', 'text-white']
-                                        ];
-                                        echo '<div class="d-flex gap-1 align-items-center estado-radio-group" data-id="'.htmlspecialchars($remito['id']).'">';
-                                        foreach ($estados_radio as $val => $info) {
-                                            $checked = ($estado == $val) ? 'checked' : '';
-                                            $bg = $info[2];
-                                            $txt = $info[3];
-                                            echo '<div class="form-check form-check-inline position-relative">';
-                                            echo '<input class="form-check-input estado-radio" type="radio" name="estado_'.$remito['id'].'" id="estado_'.$remito['id'].'_'.$val.'" value="'.$val.'" '.$checked.' data-label="'.$info[1].'" data-letra="'.$info[0].'">';
-                                            echo '<label class="form-check-label '.$bg.' '.$txt.' rounded-circle d-flex justify-content-center align-items-center" style="width:32px;height:32px;cursor:pointer;font-weight:bold;font-size:1.1rem;" for="estado_'.$remito['id'].'_'.$val.'" title="'.$info[1].'">'.$info[0].'</label>';
-                                            echo '</div>';
-                                        }
-                                        echo '</div>';
-                                        // No cerrar PHP aquí, continuar con el resto de la fila
+                                        echo $estado == "pendiente" ? '<span class="badge bg-warning text-dark">Pendiente</span>' : 
+                                            ($estado == "confirmado" ? '<span class="badge bg-info">Confirmado</span>' : 
+                                            ($estado == "recibido" ? '<span class="badge bg-success">Recibido</span>' :
+                                            '<span class="badge bg-danger">Cancelado</span>'));
                                         ?>
-                                    <!-- Modal de confirmación de cambio de estado -->
-                                    <div class="modal fade" id="modalConfirmarEstado" tabindex="-1" aria-labelledby="modalConfirmarEstadoLabel" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="modalConfirmarEstadoLabel">Confirmar cambio de estado</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <span id="textoConfirmacionEstado"></span>
-                                                </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnAceptarCambioEstado">Aceptar</button>
-            </div>
-        </div>
-    </div>
-</div>
-<script>
-let estadoRadioSeleccionado = null;
-let estadoRadioPrevio = null;
-let estadoRadioRemitoId = null;
-let modalConfirmar = null;
-let btnAceptarCambio = null;
-let textoConfirmacion = null;
-
-document.addEventListener('DOMContentLoaded', function() {
-    // ...botón confirmar remito (ya existente)...
-
-    // Modal Bootstrap
-    modalConfirmar = new bootstrap.Modal(document.getElementById('modalConfirmarEstado'));
-    btnAceptarCambio = document.getElementById('btnAceptarCambioEstado');
-    textoConfirmacion = document.getElementById('textoConfirmacionEstado');
-
-    // Estado radio
-    document.querySelectorAll('.estado-radio-group').forEach(function(grupo) {
-        const remitoId = grupo.getAttribute('data-id');
-        grupo.querySelectorAll('.estado-radio').forEach(function(radio) {
-            radio.addEventListener('change', function(e) {
-                if (this.checked) {
-                    estadoRadioSeleccionado = this.value;
-                    estadoRadioPrevio = grupo.querySelector('.estado-radio:checked') ? grupo.querySelector('.estado-radio:checked').value : null;
-                    estadoRadioRemitoId = remitoId;
-                    textoConfirmacion.textContent = '¿Seguro que deseas cambiar el estado del remito a "' + this.getAttribute('data-label') + '"?';
-                    modalConfirmar.show();
-                }
-            });
-        });
-    });
-
-    // Confirmar cambio
-    btnAceptarCambio.addEventListener('click', function() {
-        if (!estadoRadioRemitoId || !estadoRadioSeleccionado) return;
-        var formData = new FormData();
-        formData.append('id', estadoRadioRemitoId);
-        formData.append('estado', estadoRadioSeleccionado);
-        fetch('cambiar_estado_remito.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            modalConfirmar.hide();
-            setTimeout(() => location.reload(), 400);
-        })
-        .catch(() => { modalConfirmar.hide(); setTimeout(() => location.reload(), 400); });
-    });
-
-    // Cancelar cambio
-    document.getElementById('modalConfirmarEstado').addEventListener('hidden.bs.modal', function() {
-        // Restaurar el radio previo si se cancela
-        if (estadoRadioRemitoId && estadoRadioPrevio) {
-            let radios = document.querySelectorAll('.estado-radio-group[data-id="'+estadoRadioRemitoId+'"] .estado-radio');
-            radios.forEach(r => { r.checked = (r.value === estadoRadioPrevio); });
-        }
-        estadoRadioSeleccionado = null;
-        estadoRadioPrevio = null;
-        estadoRadioRemitoId = null;
-    });
-});
-</script>
-                                                                        </td>
-                                                                        <td>
-                                                                                <div class="fw-bold text-info"><?= number_format($remito['total_productos_remito']) ?> items</div>
-                                                                                <?php if ($remito['total_cantidad'] > 0): ?>
-                                                                                        <small class="text-muted">Cant: <?= number_format($remito['total_cantidad']) ?></small>
-                                                                                <?php endif; ?>
-                                                                        </td>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // ...botón confirmar remito (ya existente)...
-
-    // Selector de estado editable
-    document.querySelectorAll('.estado-remito-selector').forEach(function(sel) {
-        sel.addEventListener('change', function() {
-            var remitoId = this.getAttribute('data-id');
-            var nuevoEstado = this.value;
-            if (!confirm('¿Seguro que deseas cambiar el estado del remito a "' + this.options[this.selectedIndex].text + '"?')) {
-                this.value = this.getAttribute('data-estado-original');
-                return;
-            }
-            var formData = new FormData();
-            formData.append('id', remitoId);
-            formData.append('estado', nuevoEstado);
-            fetch('cambiar_estado_remito.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                location.reload();
-            })
-            .catch(() => location.reload());
-        });
-        // Guardar valor original para revertir si cancela
-        sel.setAttribute('data-estado-original', sel.value);
-    });
-});
-</script>
                                     </td>
                                     <td>
                                         <div class="fw-bold text-info"><?= number_format($remito['total_productos_remito']) ?> items</div>
@@ -521,34 +387,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <a href="remito_detalle.php?id=<?= $remito['id'] ?>" class="btn btn-info btn-action" title="Ver Detalle"><i class="bi bi-eye"></i></a>
                                             <a href="remito_form.php?id=<?= $remito['id'] ?>" class="btn btn-warning btn-action" title="Editar"><i class="bi bi-pencil"></i></a>
                                             <a href="remito_imprimir.php?id=<?= $remito['id'] ?>" class="btn btn-success btn-action" title="Imprimir PDF" target="_blank"><i class="bi bi-printer"></i></a>
-                                            <!-- Botón de confirmar removido: ahora el estado se cambia solo con los checkbox -->
-</div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.btn-confirmar-remito').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            if (!confirm('Vas a cambiar el estado del remito a EN REVISIÓN. ¿Deseas continuar?')) return;
-            var remitoId = this.getAttribute('data-id');
-            var btn = this;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-            var formData = new FormData();
-            formData.append('id', remitoId);
-            formData.append('estado', 'en_revision');
-            fetch('cambiar_estado_remito.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Siempre recargar la página tras la respuesta, sin mostrar alertas repetidas
-                location.reload();
-            })
-            .catch(() => { location.reload(); });
-        });
-    });
-});
-</script>
+                                            <a href="cambiar_estado_remito.php?id=<?= $remito['id'] ?>&accion=confirmar" class="btn btn-primary btn-action" title="Confirmar" onclick="return confirm('¿Confirmar este remito?')"><i class="bi bi-check"></i></a>
                                         </div>
                                     </td>
                                 </tr>
@@ -578,12 +417,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             <?php
                             $start = max(1, $page - 2);
                             $end = min($total_pages, $page + 2);
-                            for ($i = $start; $i <= $end; $i++) {
-                                echo '<li class="page-item'.($i == $page ? ' active' : '').'">';
-                                echo '<a class="page-link" href="?' . http_build_query(array_merge($_GET, ['page' => $i])) . '">' . $i . '</a>';
-                                echo '</li>';
-                            }
-                            if ($page < $total_pages): ?>
+                            for ($i = $start; $i <= $end; $i++):
+                            ?>
+                                <li class="page-item <?= $i == $page ? 'active' : '' ?>">
+                                    <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $i])) ?>">
+                                        <?= $i ?>
+                                    </a>
+                                </li>
+                            <?php endfor; ?>
+
+                            <?php if ($page < $total_pages): ?>
                                 <li class="page-item">
                                     <a class="page-link" href="?<?= http_build_query(array_merge($_GET, ['page' => $page + 1])) ?>">
                                         <i class="bi bi-chevron-right"></i>

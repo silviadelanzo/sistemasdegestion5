@@ -5,8 +5,20 @@
 		}
 	],
 	"settings": {
+		"workbench.editor.closeEmptyGroups": false,
+		"workbench.editor.revealIfOpen": true,
 		"php.validate.enable": true,
-		"php.suggest.basic": false,
-		"intelephense.environment.phpVersion": "8.2.0"
+		"php.suggest.basic": true,
+		"emmet.includeLanguages": {
+			"php": "html"
+		},
+		"explorer.confirmDelete": false,
+		"explorer.confirmDragAndDrop": false,
+		"terminal.integrated.defaultProfile.windows": "PowerShell",
+		"terminal.integrated.fontSize": 13,
+		"workbench.colorTheme": "Default Dark+",
+		"workbench.iconTheme": "vs-seti",
+		"files.simpleDialog.enable": false,
+		"breadcrumbs.enabled": true
 	}
 }

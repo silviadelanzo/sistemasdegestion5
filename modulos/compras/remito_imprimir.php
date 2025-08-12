@@ -11,7 +11,7 @@ $remito_id = (int)$_GET['id'];
 // Obtener datos del remito
 $sql_remito = "SELECT 
     r.*,
-    p.razon_social as proveedor_nombre,
+    p.nombre as proveedor_nombre,
     p.direccion as proveedor_direccion,
     p.telefono as proveedor_telefono,
     p.email as proveedor_email,
@@ -172,6 +172,7 @@ $detalles = $stmt->fetchAll();
                                 <th>Producto</th>
                                 <th width="100">Categoría</th>
                                 <th width="100" class="text-center">Cantidad</th>
+                                <th width="80" class="text-center">Recibido</th>
                                 <th>Observaciones</th>
                             </tr>
                         </thead>
@@ -196,6 +197,9 @@ $detalles = $stmt->fetchAll();
                                     </td>
                                     <td class="text-center">
                                         <strong><?= number_format($detalle['cantidad'], 2) ?></strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="checkbox-recibido"></span>
                                     </td>
                                     <td>
                                         <small><?= htmlspecialchars($detalle['observaciones'] ?: '-') ?></small>
