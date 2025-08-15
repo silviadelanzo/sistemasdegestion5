@@ -276,7 +276,7 @@ $pageTitle = "Gestión de Remitos - " . SISTEMA_NOMBRE;
                 </div>
                 <!-- Nuevo Remito primero, Filtrar abajo -->
                 <div class="col-md-2 d-grid gap-2">
-                    <a href="remito_form.php" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>Nuevo Remito</a>
+                    <a href="remito_nuevo.php" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>Nuevo Remito</a>
                     <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>Filtrar</button>
                 </div>
                 <div class="col-md-2 d-grid gap-2">

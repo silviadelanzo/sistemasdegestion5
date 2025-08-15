@@ -3,16 +3,6 @@ require_once '../../config/config.php';
 iniciarSesionSegura();
 requireLogin('../../login.php');
 
-// Detectar automáticamente si estamos en root o en módulos
-$current_path = $_SERVER['REQUEST_URI'];
-$is_root = !strpos($current_path, '/modulos/');
-$base_path = $is_root ? 'modulos/' : '../../modulos/';
-$dashboard_path = $is_root ? 'menu_principal.php' : '../../menu_principal.php';
-$logout_path = $is_root ? 'logout.php' : '../../logout.php';
-
-// Verificar si es administrador
-$es_administrador = isset($_SESSION['rol_usuario']) && ($_SESSION['rol_usuario'] === 'administrador' || $_SESSION['rol_usuario'] === 'admin');
-
 $pdo = conectarDB();
 
 // Obtener datos para los selectores
@@ -49,9 +39,8 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📝 Carga Manual de Compras</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <style>
         :root {
@@ -68,53 +57,6 @@ try {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
-        }
-
-        .navbar-custom {
-            background-color: #0074D9 !important;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .navbar-custom .navbar-brand {
-            font-weight: bold;
-            color: white !important;
-            font-size: 1.1rem;
-        }
-
-        .navbar-custom .navbar-nav .nav-link {
-            color: white !important;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            margin: 0 2px;
-            border-radius: 5px;
-            padding: 8px 12px !important;
-            font-size: 0.95rem;
-        }
-
-        .navbar-custom .navbar-nav .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .navbar-custom .navbar-nav .nav-link.active {
-            background-color: rgba(255, 255, 255, 0.2);
-            font-weight: 600;
-        }
-
-        .navbar-custom .dropdown-menu {
-            border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-
-        .navbar-custom .dropdown-item {
-            padding: 8px 16px;
-            transition: all 0.2s ease;
-        }
-
-        .navbar-custom .dropdown-item:hover {
-            background-color: #f8f9fa;
-            transform: translateX(5px);
         }
 
         .container-custom {
@@ -450,12 +392,10 @@ try {
 </head>
 
 <body>
-    <?php include '../../config/navbar_code.php'; ?>
 
     <div class="container-custom">
         <div class="main-card">
-            <!-- Eliminar el header existente -->
-            <!--
+            <!-- Header -->
             <div class="header-bar">
                 <h1 class="header-title">
                     <i class="fas fa-keyboard"></i>
@@ -468,7 +408,6 @@ try {
                     <i class="fas fa-arrow-left"></i> Volver al Selector
                 </a>
             </div>
-            -->
 
             <!-- Tabs Navigation -->
             <ul class="nav nav-tabs nav-tabs-custom" id="compraTabs" role="tablist">
@@ -723,7 +662,7 @@ try {
                             <i class="fas fa-arrow-left"></i> Anterior
                         </button>
                         <button type="button" class="btn btn-info btn-custom ms-2" onclick="guardarBorrador()">
-                            <i class="fas fa-save"></i> Poner en Pendiente
+                            <i class="fas fa-save"></i> Guardar Borrador
                         </button>
                     </div>
                     <div>
@@ -741,7 +680,7 @@ try {
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>

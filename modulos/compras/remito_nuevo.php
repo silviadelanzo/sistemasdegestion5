@@ -8,7 +8,7 @@ requireLogin('../../login.php');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nueva Compra - Seleccionar Método</title>
+    <title>Nuevo Remito - Seleccionar Método</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -113,7 +113,7 @@ requireLogin('../../login.php');
             <div class="header-bar">
                 <h1 class="header-title">
                     <i class="fas fa-cart-plus"></i>
-                    Nueva Compra - Selecciona el Método de Ingreso
+                    Nuevo Remito - Selecciona el Método de Ingreso
                 </h1>
                 <a href="compras.php" class="btn btn-light">
                     <i class="fas fa-arrow-left"></i> Volver

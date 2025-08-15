@@ -83,7 +83,7 @@ $es_administrador = isset($_SESSION['rol_usuario']) && ($_SESSION['rol_usuario']
                     </a>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/compras.php"><i class="bi bi-list-ul"></i> Ver Compras</a></li>
-                        <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/compras_form.php"><i class="bi bi-plus-circle"></i> Nueva Compra</a></li>
+                        <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/remito_nuevo.php"><i class="bi bi-plus-circle"></i> Nuevo Remito</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
