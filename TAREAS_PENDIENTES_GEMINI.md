@@ -52,3 +52,21 @@ Este archivo sirve como recordatorio de las tareas de organización que aún que
 **Nota:** El archivo `README.md` principal **NO** será movido.
 
 ---
+
+## 3. Implementación de Seguridad en Archivos PHP
+
+**Objetivo:** Asegurar que todas las páginas PHP requieran autenticación y tengan el encabezado de tipo de contenido correcto.
+
+**Código a insertar al inicio de cada archivo PHP (después de `<?php` y `session_start();` si existen):**
+
+```php
+iniciarSesionSegura();
+requireLogin('../../login.php'); // Ajustar la ruta si es necesario
+header('Content-Type: text/html; charset=UTF-8');
+```
+
+**Consideraciones:**
+*   **Excluir:** `login.php`, `logout.php`, y archivos que no generen HTML (ej. APIs que devuelvan JSON, clases).
+*   **Verificar:** Que las funciones `iniciarSesionSegura()` y `requireLogin()` estén definidas y accesibles.
+
+---
