@@ -461,12 +461,12 @@ try {
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
+                            <table class="table table-hover table-sm align-middle mb-0 compact-product-table">
                                 <thead class="table-light">
                                     <tr>
-                                        <th>Código</th>
+                                        <th style="white-space: nowrap;">Código</th>
                                         <th>Producto</th>
-                                        <th class="quantity-column">Cantidad</th>
+                                        <th class="text-end">Cantidad</th>
                                         <th class="text-end">Valor Unitario</th>
                                         <th class="text-end">Valor Total</th>
                                         <th class="text-center">Acciones</th>
@@ -474,15 +474,19 @@ try {
                                 </thead>
                                 <tbody>
                                     <?php foreach ($categoria_data['productos'] as $producto): ?>
-                                        <tr class="product-row">
-                                            <td><code><?php echo htmlspecialchars($producto['codigo'] ?: 'N/A'); ?></code></td>
+                                        <tr>
+                                            <td style="white-space: nowrap;"><code class="text-primary"><?php echo htmlspecialchars($producto['codigo'] ?: 'N/A'); ?></code></td>
                                             <td><strong><?php echo htmlspecialchars($producto['producto']); ?></strong></td>
-                                            <td class="quantity-column"><span class="quantity-badge"><?php echo number_format($producto['stock']); ?></span></td>
-                                            <td class="text-end"><?php echo formatCurrency($producto['precio_venta']); ?></td>
+                                            <td class="text-end fw-bold <?php echo ($producto['stock'] <= ($producto['stock_minimo'] ?? 0)) ? 'text-danger' : ''; ?>">
+                                                <?php echo number_format($producto['stock']); ?>
+                                            </td>
+                                            <td class="text-end"><strong><?php echo formatCurrency($producto['precio_venta']); ?></strong></td>
                                             <td class="text-end"><strong><?php echo formatCurrency($producto['valor_total_producto']); ?></strong></td>
                                             <td class="text-center">
-                                                <a href="producto_detalle.php?id=<?php echo $producto['producto_id']; ?>" class="btn btn-sm btn-outline-primary" title="Ver detalles"><i class="bi bi-eye"></i></a>
-                                                <a href="producto_form.php?id=<?php echo $producto['producto_id']; ?>" class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a href="producto_form.php?id=<?php echo $producto['producto_id']; ?>" class="btn btn-warning btn-action" title="Editar"><i class="bi bi-pencil"></i></a>
+                                                    <a href="producto_detalle.php?id=<?php echo $producto['producto_id']; ?>" class="btn btn-info btn-action" title="Ver Detalle"><i class="bi bi-eye"></i></a>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -514,12 +518,12 @@ try {
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-hover table-sm align-middle mb-0 compact-product-table">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Código</th>
+                                    <th style="white-space: nowrap;">Código</th>
                                     <th>Producto</th>
-                                    <th class="quantity-column">Cantidad</th>
+                                    <th class="text-end">Cantidad</th>
                                     <th class="text-end">Valor Unitario</th>
                                     <th class="text-end">Valor Total</th>
                                     <th class="text-center">Acciones</th>
@@ -527,20 +531,43 @@ try {
                             </thead>
                             <tbody>
                                 <?php foreach ($productos_sin_categoria as $producto): ?>
-                                    <tr class="product-row">
-                                        <td><code><?php echo htmlspecialchars($producto['codigo'] ?: 'N/A'); ?></code></td>
+                                    <tr>
+                                        <td style="white-space: nowrap;"><code class="text-primary"><?php echo htmlspecialchars($producto['codigo'] ?: 'N/A'); ?></code></td>
                                         <td><strong><?php echo htmlspecialchars($producto['producto']); ?></strong></td>
-                                        <td class="quantity-column"><span class="quantity-badge"><?php echo number_format($producto['stock']); ?></span></td>
-                                        <td class="text-end"><?php echo formatCurrency($producto['precio_venta']); ?></td>
+                                        <td class="text-end fw-bold <?php echo ($producto['stock'] <= ($producto['stock_minimo'] ?? 0)) ? 'text-danger' : ''; ?>">
+                                            <?php echo number_format($producto['stock']); ?>
+                                        </td>
+                                        <td class="text-end"><strong><?php echo formatCurrency($producto['precio_venta']); ?></strong></td>
                                         <td class="text-end"><strong><?php echo formatCurrency($producto['valor_total_producto']); ?></strong></td>
                                         <td class="text-center">
-                                            <a href="producto_detalle.php?id=<?php echo $producto['producto_id']; ?>" class="btn btn-sm btn-outline-primary" title="Ver detalles"><i class="bi bi-eye"></i></a>
-                                            <a href="producto_form.php?id=<?php echo $producto['producto_id']; ?>" class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="producto_form.php?id=<?php echo $producto['producto_id']; ?>" class="btn btn-warning btn-action" title="Editar"><i class="bi bi-pencil"></i></a>
+                                                <a href="producto_detalle.php?id=<?php echo $producto['producto_id']; ?>" class="btn btn-info btn-action" title="Ver Detalle"><i class="bi bi-eye"></i></a>
+                                            </div>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
+</style>
+<style>
+/* Compacta la tabla de productos por categoría */
+.compact-product-table th, .compact-product-table td {
+    padding-top: 0.35rem !important;
+    padding-bottom: 0.35rem !important;
+    font-size: 0.97rem;
+}
+.compact-product-table td code.text-primary {
+    font-size: 0.97rem;
+}
+.compact-product-table .btn-group .btn-action {
+    padding: 0.18rem 0.5rem;
+    font-size: 0.97rem;
+}
+.compact-product-table td, .compact-product-table th {
+    vertical-align: middle !important;
+}
+</style>
                     </div>
                 </div>
             </div>

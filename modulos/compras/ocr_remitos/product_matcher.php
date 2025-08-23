@@ -5,15 +5,11 @@ class ProductMatcher
 {
     private $db;
     private $similarity_threshold;
-    private $proveedor_id = null; // contexto de proveedor (opcional)
 
-    public function __construct($db, $proveedor_id = null)
+    public function __construct($db)
     {
         $this->db = $db;
         $this->similarity_threshold = 0.85; // 85% de similitud mínima
-        if (!is_null($proveedor_id)) {
-            $this->proveedor_id = (int)$proveedor_id;
-        }
     }
 
     public function matchProducts($productos_remito)
@@ -69,18 +65,6 @@ class ProductMatcher
 
     private function findBestMatch($producto_remito)
     {
-        // PASO 0: Si tenemos proveedor, intentar por código de proveedor
-        if (!empty($this->proveedor_id) && !empty($producto_remito['codigo'])) {
-            $byProv = $this->findByProveedorCode($producto_remito['codigo'], $this->proveedor_id);
-            if ($byProv) {
-                return [
-                    'type' => 'exact',
-                    'product' => $byProv,
-                    'confidence' => 1.0
-                ];
-            }
-        }
-
         // PASO 1: Buscar coincidencia exacta por código
         $exact_match = $this->findExactMatch($producto_remito);
         if ($exact_match) {
@@ -143,33 +127,11 @@ class ProductMatcher
         return ['type' => 'new'];
     }
 
-    private function findByProveedorCode($codigo, $proveedor_id)
-    {
-        // Normalizar código
-        $codigo = strtoupper(trim((string)$codigo));
-        if ($codigo === '') return null;
-
-        // Búsqueda directa en productos por código_proveedor y proveedor_principal_id
-        // Nota: muchos esquemas guardan el código del proveedor en productos.codigo_proveedor
-        //       y el vínculo principal en productos.proveedor_principal_id
-        try {
-            $sql = "SELECT * FROM productos WHERE proveedor_principal_id = ? AND (codigo_proveedor = ? OR codigo = ?) LIMIT 1";
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([(int)$proveedor_id, $codigo, $codigo]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($row) return $row;
-        } catch (Throwable $e) {
-            // Ignorar errores y continuar con otros métodos
-        }
-
-        return null;
-    }
-
     private function findExactMatch($producto_remito)
     {
         $codigo = $producto_remito['codigo'];
 
-    $sql = "SELECT * FROM productos WHERE codigo = ? OR codigo_alternativo = ? LIMIT 1";
+        $sql = "SELECT * FROM productos WHERE codigo = ? OR codigo_alternativo = ? LIMIT 1";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$codigo, $codigo]);
 
@@ -459,11 +421,6 @@ class ProductMatcher
     public function setSimilarityThreshold($threshold)
     {
         $this->similarity_threshold = max(0.0, min(1.0, $threshold));
-    }
-
-    public function setProveedorId($proveedor_id)
-    {
-        $this->proveedor_id = is_null($proveedor_id) ? null : (int)$proveedor_id;
     }
 
     public function getMatchingStats($results)

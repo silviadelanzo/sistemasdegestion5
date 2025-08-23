@@ -53,23 +53,3 @@ composer.lock
 
 # Archivos de sesion (si los usas a nivel de sistema de archivos)
 /sessions
-
-# Node y vendor
-/vendor/
-/node_modules/
-
-# Variables de entorno
-.env
-
-# Archivos de base de datos
-*.sqlite
-*.db
-
-# Carpetas de backup y logs
-backup*/
-logs/
-temp/
-
-# VSCode (excepto configuración principal)
-.vscode/backups/
-.vscode/*.ps1

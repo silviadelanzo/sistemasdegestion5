@@ -1,6 +1,6 @@
 <?php
-// RUTA CORREGIDA: Sube dos niveles desde /modulos/Inventario/ para encontrar config.php
-require_once '../../config/config.php';
+// La ruta correcta al archivo de configuración desde la raíz del proyecto.
+require_once 'config/config.php';
 
 iniciarSesionSegura();
 if (!isset($_SESSION['id_usuario'])) {
@@ -14,8 +14,11 @@ mb_internal_encoding('UTF-8');
 
 $response = ['success' => false, 'message' => 'Acción no válida.'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['accion'] === 'crear_simple') {
-    $nombre_lugar = trim($_POST['nombre_lugar'] ?? '');
+
+$input = json_decode(file_get_contents('php://input'), true);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($input['accion']) && $input['accion'] === 'crear_simple') {
+    $nombre_lugar = trim($input['nombre_lugar'] ?? '');
 
     if (empty($nombre_lugar)) {
         $response['message'] = 'El nombre de la ubicación no puede estar vacío.';

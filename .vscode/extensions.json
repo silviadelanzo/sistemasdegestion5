@@ -1,8 +1,12 @@
 {
-    "recommendations": [
-        "bmewburn.vscode-intelephense-client",
-        "xdebug.php-debug",
-        "esbenp.prettier-vscode",
-        "junstyle.php-cs-fixer"
-    ]
+    "unwantedRecommendations":  [
+                                    "felixfbecker.php-intellisense",
+                                    "bmewburn.vscode-intelephense-client",
+                                    "devsense.phptools-vscode"
+                                ],
+    "recommendations":  [
+                            "ms-vscode.vscode-json",
+                            "formulahendry.auto-rename-tag",
+                            "ms-vscode.hexeditor"
+                        ]
 }

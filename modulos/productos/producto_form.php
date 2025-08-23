@@ -649,22 +649,23 @@ try {
                 alert('Ingrese nombre para la categoría.');
                 return;
             }
-            fetch('ajax_categorias.php', {
+            // CORRECCIÓN: Ruta y formato de datos
+            fetch('../../ajax/ajax_categorias.php', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
+                        'Content-Type': 'application/json'
                     },
-                    body: 'accion=crear_simple&nombre_categoria=' + encodeURIComponent(nombre)
+                    body: JSON.stringify({ accion: 'crear_simple', nombre_categoria: nombre })
                 })
-                .then(r => r.json()).then(d => {
-                    if (d.success) {
+                .then(r => r.json()).then(data => {
+                    if (data.success) {
                         const sel = document.getElementById('categoria_id');
-                        sel.add(new Option(d.categoria.nombre, d.categoria.id, true, true));
+                        sel.add(new Option(data.categoria.nombre, data.categoria.id, true, true));
                         if (modalCategoriaInstance) modalCategoriaInstance.hide();
                         document.getElementById('nombreNuevaCategoria').value = '';
-                        alert('Categoría creada: ' + d.categoria.nombre);
+                        alert('Categoría creada: ' + data.categoria.nombre);
                     } else {
-                        alert('Error: ' + (d.message || 'No se pudo crear'));
+                        alert('Error: ' + (data.message || 'No se pudo crear'));
                     }
                 }).catch(e => {
                     console.error(e);
@@ -678,22 +679,23 @@ try {
                 alert('Ingrese nombre para la ubicación.');
                 return;
             }
-            fetch('ajax_lugares.php', {
+            // CORRECCIÓN: Ruta y formato de datos
+            fetch('../../ajax/ajax_lugares.php', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
+                        'Content-Type': 'application/json'
                     },
-                    body: 'accion=crear_simple&nombre_lugar=' + encodeURIComponent(nombre)
+                    body: JSON.stringify({ accion: 'crear_simple', nombre_lugar: nombre })
                 })
-                .then(r => r.json()).then(d => {
-                    if (d.success) {
+                .then(r => r.json()).then(data => {
+                    if (data.success) {
                         const sel = document.getElementById('lugar_id');
-                        sel.add(new Option(d.lugar.nombre, d.lugar.id, true, true));
+                        sel.add(new Option(data.lugar.nombre, data.lugar.id, true, true));
                         if (modalLugarInstance) modalLugarInstance.hide();
                         document.getElementById('nombreNuevoLugar').value = '';
-                        alert('Ubicación creada: ' + d.lugar.nombre);
+                        alert('Ubicación creada: ' + data.lugar.nombre);
                     } else {
-                        alert('Error: ' + (d.message || 'No se pudo crear'));
+                        alert('Error: ' + (data.message || 'No se pudo crear'));
                     }
                 }).catch(e => {
                     console.error(e);

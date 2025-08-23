@@ -345,7 +345,7 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
                                     <td><small class="text-muted"><?= date('d/m/Y', strtotime($prod['fecha_creacion'])) ?></small></td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="producto_form.php?id=<?= $prod['id'] ?>" class="btn btn-warning btn-action" title="Editar"><i class="bi bi-pencil"></i></a>
+                                            <a href="../Inventario/proform.php?id=<?= $prod['id'] ?>" class="btn btn-warning btn-action" title="Editar"><i class="bi bi-pencil"></i></a>
                                             <a href="producto_detalle.php?id=<?= $prod['id'] ?>" class="btn btn-info btn-action" title="Ver Detalle"><i class="bi bi-eye"></i></a>
                                             <button onclick="inactivarProducto(<?= $prod['id'] ?>, '<?= htmlspecialchars(addslashes($prod['nombre'])) ?>')" class="btn btn-secondary btn-action" title="Inactivar"><i class="bi bi-archive"></i></button>
                                             <button onclick="eliminarProducto(<?= $prod['id'] ?>, '<?= htmlspecialchars(addslashes($prod['nombre'])) ?>')" class="btn btn-danger btn-action" title="Eliminar"><i class="bi bi-trash"></i></button>

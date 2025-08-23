@@ -14,8 +14,10 @@ mb_internal_encoding('UTF-8');
 
 $response = ['success' => false, 'message' => 'Acción no válida.'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['accion'] === 'crear_simple') {
-    $nombre_categoria = trim($_POST['nombre_categoria'] ?? '');
+$input = json_decode(file_get_contents('php://input'), true);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($input['accion']) && $input['accion'] === 'crear_simple') {
+    $nombre_categoria = trim($input['nombre_categoria'] ?? '');
 
     if (empty($nombre_categoria)) {
         $response['message'] = 'El nombre de la categoría no puede estar vacío.';

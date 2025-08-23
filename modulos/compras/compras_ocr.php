@@ -748,85 +748,17 @@ $proveedores = $pdo->query("SELECT * FROM proveedores WHERE activo = 1 ORDER BY 
             actualizarContadores();
         }
 
-        async function iniciarProcesamiento() {
+        function iniciarProcesamiento() {
             if (archivosSubidos.length === 0) {
                 alert('Selecciona al menos un archivo para procesar');
                 return;
             }
-
+            
             procesamientoActivo = true;
             document.getElementById('processing-tab').click();
-
-            // Intentar procesamiento real por backend
-            try {
-                const formData = new FormData();
-                archivosSubidos.forEach((f, idx) => formData.append('files[]', f));
-
-                const engine = document.getElementById('ocr-engine')?.value || 'tesseract';
-                const proveedorEsperado = document.getElementById('proveedor-esperado')?.value || '';
-                const precisionLevel = document.getElementById('precision-level')?.value || 'balanced';
-                const autoValidate = document.getElementById('auto-validate')?.checked ? '1' : '0';
-                formData.append('engine', engine);
-                formData.append('proveedor_id', proveedorEsperado);
-                formData.append('precision', precisionLevel);
-                formData.append('auto_validate', autoValidate);
-
-                const resp = await fetch('ocr_remitos/upload_ocr.php', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!resp.ok) throw new Error('Error de red ' + resp.status);
-                const data = await resp.json();
-                if (!data.success) throw new Error(data.error || 'Procesamiento fallido');
-
-                // Renderizar progreso simple
-                document.getElementById('progreso-actual').style.width = '100%';
-                document.getElementById('progreso-actual').textContent = '100%';
-                const stepElements = document.querySelectorAll('#proceso-steps div');
-                stepElements.forEach((el, i) => {
-                    el.innerHTML = '<i class="fas fa-check text-success me-2"></i>' + el.textContent;
-                    el.classList.remove('text-muted');
-                });
-
-                // Usar detalles por ítem del backend y mostrar código interno asignado
-                const productos = [];
-                let codigoInternoAsignado = '';
-                (data.files || []).forEach(f => {
-                    if (f.db_saved && f.db_saved.codigo) {
-                        codigoInternoAsignado = f.db_saved.codigo;
-                    }
-                    const items = f.items || [];
-                    const toFixedPct = v => Math.min(100, Math.round((v || 0) * 100));
-                    items.forEach(it => productos.push({
-                        nombre: it.descripcion || '',
-                        cantidad: it.cantidad || 1,
-                        confidence: toFixedPct(it.confidence),
-                        status: it.status === 'exact' ? 'confirmed' : (it.status === 'fuzzy' ? 'needs_review' : (it.status === 'conflict' ? 'needs_review' : 'error')),
-                        codigo: it.codigo || 'NEW',
-                        precio_estimado: 0
-                    }));
-                });
-
-                productosDetectados = productos;
-                mostrarResultados();
-                document.getElementById('badge-productos').textContent = productosDetectados.length;
-                document.getElementById('resumen-deteccion').style.display = 'block';
-                actualizarResumenDeteccion();
-                if (codigoInternoAsignado) {
-                    // Mostrar un aviso flotante con el nuevo código de remito
-                    const toast = document.createElement('div');
-                    toast.className = 'alert alert-info mt-3';
-                    toast.innerHTML = `<i class="fas fa-barcode me-2"></i>Remito creado: <strong>${codigoInternoAsignado}</strong> (pendiente)`;
-                    const uploadTab = document.getElementById('upload');
-                    uploadTab.parentNode.insertBefore(toast, uploadTab);
-                }
-                setTimeout(() => document.getElementById('results-tab').click(), 600);
-            } catch (e) {
-                // Fallback: simulación previa
-                console.warn('Fallo procesamiento real, usando simulación. Motivo:', e);
-                simularProcesamiento();
-            }
+            
+            // Simular procesamiento
+            simularProcesamiento();
         }
 
         function simularProcesamiento() {

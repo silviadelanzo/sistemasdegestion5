@@ -37,58 +37,38 @@ class OCRProcessor
 
     private function preprocessImage($file_path)
     {
-    // Usar extensión del archivo original por defecto; si procesamos con GD, luego escribiremos PNG
-    $origExt = pathinfo($file_path, PATHINFO_EXTENSION);
-    $temp_file = $this->temp_dir . uniqid('processed_') . '.' . ($origExt ? strtolower($origExt) : 'img');
+        $temp_file = $this->temp_dir . uniqid('processed_') . '.png';
 
-        // Cargar imagen según tipo (si GD está disponible); si no, copiar sin procesar
-        $image_info = @getimagesize($file_path);
-        $mime_type = is_array($image_info) && isset($image_info['mime']) ? $image_info['mime'] : null;
-
-        $canUseGD = function_exists('imagepng') && function_exists('imagefilter') && function_exists('imageconvolution');
-
-    if (!$mime_type || !$canUseGD) {
-            // Fallback: copiar el archivo original como PNG temporal (cuando no hay GD)
-            // Si ya es PNG/JPG, simplemente copiamos a temp para no borrar el original luego
-            if (!@copy($file_path, $temp_file)) {
-                // Último recurso: devolver el archivo original (no lo eliminaremos luego)
-                return $file_path;
-            }
-            return $temp_file;
-        }
+        // Cargar imagen según tipo
+        $image_info = getimagesize($file_path);
+        $mime_type = $image_info['mime'];
 
         switch ($mime_type) {
             case 'image/jpeg':
-                if (!function_exists('imagecreatefromjpeg')) return @copy($file_path, $temp_file) ? $temp_file : $file_path;
-                $image = @imagecreatefromjpeg($file_path);
+                $image = imagecreatefromjpeg($file_path);
                 break;
             case 'image/png':
-                if (!function_exists('imagecreatefrompng')) return @copy($file_path, $temp_file) ? $temp_file : $file_path;
-                $image = @imagecreatefrompng($file_path);
+                $image = imagecreatefrompng($file_path);
                 break;
             case 'image/gif':
-                if (!function_exists('imagecreatefromgif')) return @copy($file_path, $temp_file) ? $temp_file : $file_path;
-                $image = @imagecreatefromgif($file_path);
+                $image = imagecreatefromgif($file_path);
                 break;
             default:
-                // Tipo no soportado por GD: copiar sin procesar
-                return @copy($file_path, $temp_file) ? $temp_file : $file_path;
+                throw new Exception("Formato de imagen no soportado: " . $mime_type);
         }
 
         if (!$image) {
-            // No pudo cargarse: copiar sin procesar
-            return @copy($file_path, $temp_file) ? $temp_file : $file_path;
+            throw new Exception("No se pudo cargar la imagen");
         }
 
         // Mejorar contraste y nitidez
         $image = $this->enhanceImage($image);
 
-    // Guardar imagen procesada como PNG para mejor OCR
-    $temp_png = $this->temp_dir . uniqid('processed_') . '.png';
-    @imagepng($image, $temp_png);
+        // Guardar imagen procesada
+        imagepng($image, $temp_file);
         imagedestroy($image);
 
-    return file_exists($temp_png) ? $temp_png : (file_exists($temp_file) ? $temp_file : $file_path);
+        return $temp_file;
     }
 
     private function enhanceImage($image)
@@ -164,22 +144,10 @@ TOTAL: $385.00";
 
     private function cleanText($text)
     {
-        // Limpiar y normalizar texto OCR manteniendo saltos de línea para el parser
-        if ($text === null) { return ''; }
-
-        // Normalizar saltos de línea (Windows/Mac -> Unix)
-        $text = str_replace(["\r\n", "\r"], "\n", $text);
-        // Convertir form-feed a salto de línea
-        $text = str_replace("\f", "\n", $text);
-        // Remover caracteres no imprimibles, excepto \n
-        $text = preg_replace('/[^\x0A\x20-\x7E\xC0-\xFF]/', '', $text);
-        // Quitar espacios repetidos pero conservando \n
-        $lines = explode("\n", $text);
-        foreach ($lines as &$line) {
-            $line = preg_replace('/[\t ]+/', ' ', trim($line));
-        }
-        unset($line);
-        $text = trim(implode("\n", array_filter($lines, function($l){ return $l !== null; })));
+        // Limpiar y normalizar texto OCR
+        $text = trim($text);
+        $text = preg_replace('/\s+/', ' ', $text); // Normalizar espacios
+        $text = preg_replace('/[^\x20-\x7E\xC0-\xFF]/', '', $text); // Remover caracteres extraños
 
         return $text;
     }

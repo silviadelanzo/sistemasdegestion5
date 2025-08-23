@@ -1,0 +1,6 @@
+timestamp,status,user,ip,script,query,ua
+"2025-08-16 23:27:19",200,admin,::1,/sistemadgestion5/index.php,,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+timestamp,status,user,ip,script,query,ua
+"2025-08-16 23:29:43",200,admin,::1,/sistemadgestion5/index.php,,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+timestamp,status,user,ip,script,query,ua
+"2025-08-16 23:31:24",200,admin,::1,/sistemadgestion5/index.php,,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
