@@ -1,6 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
 session_start();
 // iniciarSesionSegura();
 // requireLogin('../../login.php'); // Ajustar la ruta si es necesario
@@ -19,9 +17,6 @@ $cliente = null;
 $detalles = [];
 $historial = [];
 $error_message = '';
-$subtotal_pedido = 0;
-$total_impuestos = 0;
-$total_pedido = 0;
 
 try {
     $pdo = conectarDB();
@@ -47,24 +42,13 @@ try {
         $stmt_detalles = $pdo->prepare("
             SELECT 
                 pd.*, 
-                prod.codigo as producto_codigo, prod.nombre as producto_nombre, i.porcentaje as tax_rate
+                prod.codigo as producto_codigo, prod.nombre as producto_nombre
             FROM pedido_detalles pd
             JOIN productos prod ON pd.producto_id = prod.id
-            LEFT JOIN impuestos i ON prod.impuesto_id = i.id
             WHERE pd.pedido_id = ?
         ");
         $stmt_detalles->execute([$pedido_id]);
         $detalles = $stmt_detalles->fetchAll(PDO::FETCH_ASSOC);
-
-        // Calcular el total
-        foreach ($detalles as $detalle) {
-            $subtotal_item = $detalle['precio_unitario'] * $detalle['cantidad'];
-            $tax_rate = (float)($detalle['tax_rate'] ?? 0) / 100;
-            $impuesto_item = $subtotal_item * $tax_rate;
-            $subtotal_pedido += $subtotal_item;
-            $total_impuestos += $impuesto_item;
-        }
-        $total_pedido = $subtotal_pedido + $total_impuestos;
 
         // Obtener historial del pedido
         $stmt_historial = $pdo->prepare("
@@ -99,23 +83,16 @@ try {
         .card-header { background-color: #007bff; color: white; border-radius: 1rem 1rem 0 0 !important; }
         .section-title { color: #007bff; margin-top: 1.5rem; margin-bottom: 1rem; border-bottom: 2px solid #007bff; padding-bottom: 0.5rem; }
         .table th { background-color: #e9ecef; }
-        .text-end { text-align: right !important; }
-        .w-10 { width: 10% !important; }
-        .w-15 { width: 15% !important; }
-        .w-40 { width: 40% !important; }
     </style>
 </head>
 <body>
-    <!-- NAVBAR UNIFICADO -->
-    <?php include "../../config/navbar_code.php"; ?>
-
     <div class="container mt-5 mb-5">
         <div class="row justify-content-center">
-            <div class="col-md-10">
+            <div class="col-md-7">
                 <div class="card shadow">
                     <div class="card-header text-center py-3">
                 <?php if ($pedido): ?>
-                    <h2 class="mb-0"><i class="fas fa-receipt me-2"></i>Detalle del Pedido #<?= htmlspecialchars($pedido['codigo'] ?? '') ?></h2>
+                    <h2 class="mb-0"><i class="fas fa-receipt me-2"></i>Detalle del Pedido #<?= htmlspecialchars($pedido['codigo']) ?></h2>
                 <?php else: ?>
                     <h2 class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>Error</h2>
                 <?php endif; ?>
@@ -133,7 +110,7 @@ try {
                     <h3 class="section-title">Información del Pedido</h3>
                     <div class="row mb-4">
                         <div class="col-md-6">
-                                                        <p><strong>Código:</strong> <?= htmlspecialchars($pedido['codigo'] ?? '') ?></p>
+                            <p><strong>Código:</strong> <?= htmlspecialchars($pedido['codigo']) ?></p>
                             <p><strong>Fecha de Pedido:</strong> <?= htmlspecialchars(date('d/m/Y H:i', strtotime($pedido['fecha_pedido']))) ?></p>
                             <p><strong>Fecha de Entrega:</strong> <?= $pedido['fecha_entrega'] ? htmlspecialchars(date('d/m/Y', strtotime($pedido['fecha_entrega']))) : 'Pendiente' ?></p>
                             <p><strong>Estado:</strong> <span class="badge bg-<?php 
@@ -145,13 +122,13 @@ try {
                                     case 'cancelado': echo 'danger'; break;
                                     default: echo 'secondary';
                                 }
-                            ?>"><?= htmlspecialchars(ucfirst($pedido['estado'] ?? '')) ?></span></p>
+                            ?>"><?= htmlspecialchars(ucfirst($pedido['estado'])) ?></span></p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Subtotal:</strong> $<?= number_format($pedido['subtotal'], 2, ',', '.') ?></p>
                             <p><strong>Impuestos:</strong> $<?= number_format($pedido['impuestos'], 2, ',', '.') ?></p>
                             <p><strong>Total:</strong> $<?= number_format($pedido['total'], 2, ',', '.') ?></p>
-                            <p><strong>Notas:</strong> <?= $pedido['notas'] ? htmlspecialchars($pedido['notas'] ?? '') : 'N/A' ?></p>
+                            <p><strong>Notas:</strong> <?= $pedido['notas'] ? htmlspecialchars($pedido['notas']) : 'N/A' ?></p>
                         </div>
                     </div>
 
@@ -159,16 +136,16 @@ try {
                     <h3 class="section-title">Información del Cliente</h3>
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <p><strong>Nombre:</strong> <?= htmlspecialchars(($pedido['cliente_nombre'] ?? '') . ' ' . ($pedido['cliente_apellido'] ?? '')) ?></p>
-                            <p><strong>Empresa:</strong> <?= htmlspecialchars($pedido['cliente_empresa'] ?? '') ?></p>
-                            <p><strong>Email:</strong> <?= htmlspecialchars($pedido['cliente_email'] ?? '') ?></p>
-                            <p><strong>Teléfono:</strong> <?= htmlspecialchars($pedido['cliente_telefono'] ?? '') ?></p>
+                            <p><strong>Nombre:</strong> <?= htmlspecialchars($pedido['cliente_nombre'] . ' ' . $pedido['cliente_apellido']) ?></p>
+                            <p><strong>Empresa:</strong> <?= htmlspecialchars($pedido['cliente_empresa']) ?></p>
+                            <p><strong>Email:</strong> <?= htmlspecialchars($pedido['cliente_email']) ?></p>
+                            <p><strong>Teléfono:</strong> <?= htmlspecialchars($pedido['cliente_telefono']) ?></p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Dirección:</strong> <?= htmlspecialchars($pedido['cliente_direccion'] ?? '') ?></p>
-                            <p><strong>Ciudad:</strong> <?= htmlspecialchars($pedido['cliente_ciudad'] ?? '') ?></p>
-                            <p><strong>Provincia:</strong> <?= htmlspecialchars($pedido['cliente_provincia'] ?? '') ?></p>
-                            <p><strong>País:</strong> <?= htmlspecialchars($pedido['cliente_pais'] ?? '') ?></p>
+                            <p><strong>Dirección:</strong> <?= htmlspecialchars($pedido['cliente_direccion']) ?></p>
+                            <p><strong>Ciudad:</strong> <?= htmlspecialchars($pedido['cliente_ciudad']) ?></p>
+                            <p><strong>Provincia:</strong> <?= htmlspecialchars($pedido['cliente_provincia']) ?></p>
+                            <p><strong>País:</strong> <?= htmlspecialchars($pedido['cliente_pais']) ?></p>
                         </div>
                     </div>
 
@@ -179,40 +156,24 @@ try {
                             <table class="table table-bordered table-hover">
                                 <thead class="table-light">
                                     <tr>
-                                        <th class="w-40">Producto</th>
-                                        <th class="text-end w-10">Cantidad</th>
-                                        <th class="text-end w-15">Precio s/IVA</th>
-                                        <th class="text-end w-15">Total s/IVA</th>
-                                        <th class="text-end w-10">Impuesto</th>
-                                        <th class="text-end w-15">Total c/Impuesto</th>
+                                        <th>Código</th>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Precio Unitario</th>
+                                        <th>Subtotal</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($detalles as $detalle): ?>
-                                        <?php
-                                            $qty = (int)$detalle['cantidad'];
-                                            $price = (float)$detalle['precio_unitario'];
-                                            $subtotal_item = $price * $qty;
-                                            $tax_rate = (float)($detalle['tax_rate'] ?? 0) / 100;
-                                            $impuesto_item = $subtotal_item * $tax_rate;
-                                            $total_item = $subtotal_item + $impuesto_item;
-                                        ?>
                                         <tr>
-                                            <td><?= htmlspecialchars($detalle['producto_nombre'] ?? '') ?></td>
-                                            <td class="text-end"><?= htmlspecialchars($qty) ?></td>
-                                            <td class="text-end">$<?= number_format($price, 2, ',', '.') ?></td>
-                                            <td class="text-end">$<?= number_format($subtotal_item, 2, ',', '.') ?></td>
-                                            <td class="text-end">$<?= number_format($impuesto_item, 2, ',', '.') ?></td>
-                                            <td class="text-end">$<?= number_format($total_item, 2, ',', '.') ?></td>
+                                            <td><?= htmlspecialchars($detalle['producto_codigo']) ?></td>
+                                            <td><?= htmlspecialchars($detalle['producto_nombre']) ?></td>
+                                            <td><?= htmlspecialchars($detalle['cantidad']) ?></td>
+                                            <td>$<?= number_format($detalle['precio_unitario'], 2, ',', '.') ?></td>
+                                            <td>$<?= number_format($detalle['subtotal'], 2, ',', '.') ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td colspan="5" class="text-end"><strong>Total General:</strong></td>
-                                        <td class="text-end"><strong>$<?= number_format($total_pedido, 2, ',', '.') ?></strong></td>
-                                    </tr>
-                                </tfoot>
                             </table>
                         </div>
                     <?php else: ?>
@@ -237,9 +198,9 @@ try {
                                     <?php foreach ($historial as $registro): ?>
                                         <tr>
                                             <td><?= htmlspecialchars(date('d/m/Y H:i', strtotime($registro['fecha_cambio']))) ?></td>
-                                            <td><?= htmlspecialchars($registro['usuario_nombre'] ?? '') ?></td>
+                                            <td><?= htmlspecialchars($registro['usuario_nombre']) ?></td>
                                             <td><?= htmlspecialchars(ucfirst($registro['estado_anterior'] ?? 'N/A')) ?></td>
-                                            <td><?= htmlspecialchars(ucfirst($registro['estado_nuevo'] ?? '')) ?></td>
+                                            <td><?= htmlspecialchars(ucfirst($registro['estado_nuevo'])) ?></td>
                                             <td><?= htmlspecialchars($registro['comentario'] ?? 'N/A') ?></td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -252,7 +213,9 @@ try {
 
                     <div class="text-center mt-4">
                         <a href="pedidos.php" class="btn btn-primary"><i class="fas fa-arrow-left me-2"></i>Volver a Pedidos</a>
+                        <!-- Aquí se pueden añadir botones para Editar, Cambiar Estado, Imprimir -->
                         <a href="pedido_editar.php?id=<?= $pedido_id ?>" class="btn btn-warning"><i class="fas fa-edit me-2"></i>Editar Pedido</a>
+                        <a href="pedido_cambiar_estado.php?id=<?= $pedido_id ?>" class="btn btn-info"><i class="fas fa-sync-alt me-2"></i>Cambiar Estado</a>
                         <a href="pedido_imprimir.php?id=<?= $pedido_id ?>" class="btn btn-success"><i class="fas fa-print me-2"></i>Imprimir Pedido</a>
                     </div>
                 <?php endif; ?>

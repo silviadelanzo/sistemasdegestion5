@@ -3,7 +3,6 @@ require_once '../../config/config.php';
 
 iniciarSesionSegura();
 requireLogin('../../login.php');
-header('Content-Type: text/html; charset=UTF-8');
 
 header('Content-Type: text/html; charset=UTF-8');
 mb_internal_encoding('UTF-8');
@@ -324,6 +323,7 @@ try {
     <meta charset="UTF-8">
     <title>Alta / Edición de producto (Modular)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
     /* Barra superior */
     .hero-blue {
@@ -366,21 +366,9 @@ try {
     .form-control, .form-select { padding: .35rem .5rem; font-size: .95rem; }
     textarea.form-control { min-height: 42px; }
 
-    /* Checkboxes azules más notorios */
-    .form-check-input {
-      width: 1.1rem;
-      height: 1.1rem;
-      background-color: #e7f1ff; /* azul claro aun sin marcar */
-      border-color: #0d6efd;
-      accent-color: #0d6efd; /* soporte nativo en navegadores modernos */
-    }
-    .form-check-input:checked {
-      background-color: #0d6efd; /* azul sólido al marcar */
-      border-color: #0d6efd;
-    }
-    .form-check-input:focus {
-      box-shadow: 0 0 0 0.15rem rgba(13,110,253,.25);
-    }
+    /* Checkboxes azules */
+    .form-check-input { width: 1.1rem; height: 1.1rem; }
+    .form-check-input:checked { background-color: #0d6efd; border-color: #0d6efd; }
 
     /* Ocultar cualquier badge de código antiguo si quedara */
     .badge.text-bg-secondary, .badge.text-bg-info { display: none !important; }
@@ -391,6 +379,7 @@ try {
     </style>
 </head>
 <body class="bg-light">
+<?php include "../../config/navbar_code.php"; ?>
 <div class="container">
 
     <div class="hero-blue">
@@ -648,6 +637,7 @@ try {
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 // Cálculo en vivo: Precio = Costo × (1 + impuesto/100) × (1 + utilidad/100)
 // Precio de Venta = Precio Minorista.

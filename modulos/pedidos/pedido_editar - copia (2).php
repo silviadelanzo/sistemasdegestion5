@@ -54,17 +54,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pedido_id) {
         $precios_unitarios = $_POST['precio_unitario'] ?? [];
 
         foreach ($productos_ids as $index => $prod_id) {
-            $qty = (int)($cantidades[$index] ?? 0);
+            $qty = (float)($cantidades[$index] ?? 0);
             $price = (float)($precios_unitarios[$index] ?? 0);
             if ($prod_id && $qty > 0) {
-                $stmt_tax = $pdo->prepare("SELECT i.porcentaje FROM productos p JOIN impuestos i ON p.impuesto_id = i.id WHERE p.id = ?");
-                $stmt_tax->execute([$prod_id]);
-                $tax_rate = $stmt_tax->fetchColumn() / 100;
-                $subtotal += $qty * $price;
-                $impuestos += ($qty * $price) * $tax_rate;
+                $subtotal += $qty * $price; // sin IVA
             }
         }
 
+        $impuestos = round($subtotal * 0.21, 2);
         $total = round($subtotal + $impuestos, 2);
 
         $stmt = $pdo->prepare("
@@ -83,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pedido_id) {
         ");
 
         foreach ($productos_ids as $index => $prod_id) {
-            $qty = (int)($cantidades[$index] ?? 0);
+            $qty = (float)($cantidades[$index] ?? 0);
             $price = (float)($precios_unitarios[$index] ?? 0);
             if ($prod_id && $qty > 0) {
                 $item_subtotal = $qty * $price; // sin IVA
@@ -103,6 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pedido_id) {
         $pdo->commit();
         $message = "Pedido actualizado exitosamente.";
         $message_type = "success";
+
     } catch (Exception $e) {
         if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
         $message = "Error al actualizar el pedido: " . $e->getMessage();
@@ -120,10 +118,9 @@ if ($pedido_id) {
 
         if ($pedido) {
             $stmt_detalles = $pdo->prepare("
-                SELECT pd.*, p.nombre as producto_nombre, p.codigo as producto_codigo, i.porcentaje as tax_rate
+                SELECT pd.*, p.nombre as producto_nombre, p.codigo as producto_codigo
                 FROM pedido_detalles pd
                 JOIN productos p ON pd.producto_id = p.id
-                LEFT JOIN impuestos i ON p.impuesto_id = i.id
                 WHERE pd.pedido_id = ?
             ");
             $stmt_detalles->execute([$pedido_id]);
@@ -142,7 +139,7 @@ if ($pedido_id) {
 try {
     $pdo = conectarDB();
     $clientes_list = $pdo->query("SELECT id, CONCAT(nombre, ' ', apellido, ' (', empresa, ')') as full_name FROM clientes ORDER BY full_name")->fetchAll(PDO::FETCH_ASSOC);
-    $productos_list = $pdo->query("SELECT p.id, CONCAT(p.codigo, ' - ', p.nombre) as full_name, p.precio_venta, i.porcentaje as tax_rate FROM productos p LEFT JOIN impuestos i ON p.impuesto_id = i.id ORDER BY full_name")->fetchAll(PDO::FETCH_ASSOC);
+    $productos_list = $pdo->query("SELECT id, CONCAT(codigo, ' - ', nombre) as full_name, precio_venta FROM productos ORDER BY full_name")->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $message = "Error al cargar listas: " . $e->getMessage();
     $message_type = "danger";
@@ -154,25 +151,37 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Pedido - Sistema de Gestión</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background-color: #f8f9fa; }
         .card { border-radius: 1rem; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1); }
         .card-header { background-color: #007bff; color: white; border-radius: 1rem 1rem 0 0 !important; }
-        .section-title { color: #007bff; margin-top: 1rem; margin-bottom: .5rem; border-bottom: 2px solid #007bff; padding-bottom: .25rem; }
-        .compact-table, .compact-table .form-control, .compact-table .form-select { font-size: 0.9rem; }
+        .section-title { color: #007bff; margin-top: 1.25rem; margin-bottom: .75rem; border-bottom: 2px solid #007bff; padding-bottom: .35rem; }
+
+        /* Compactar tabla y tipografías (-1 punto aprox) */
+        .compact-table, .compact-table .form-control, .compact-table .form-select {
+            font-size: 0.9rem;
+        }
         .compact-table .form-control, .compact-table .form-select {
             padding: .25rem .5rem;
             height: calc(1.2em + .5rem + 2px);
         }
         .table.table-sm th, .table.table-sm td { padding: .3rem .5rem; }
+
+        /* Anchos de columnas más angostos */
+        table.fixed-layout { table-layout: fixed; width: 100%; }
+        th.col-producto { width: 32%; }
+        th.col-cantidad { width: 11%; }
+        th.col-precio   { width: 13%; }
+        th.col-impuesto { width: 12%; }
+        th.col-total    { width: 12%; }
+        th.col-acciones { width: 3%; }
+
         .readonly-input { background-color: #f8f9fa; }
         .text-end { text-align: end; }
-        .w-10 { width: 10% !important; }
-        .w-15 { width: 15% !important; }
-        .w-40 { width: 40% !important; }
+        /* Notas en una sola línea */
+        .one-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     </style>
 </head>
 <body>
@@ -183,9 +192,7 @@ try {
             <div class="col-lg-11">
                 <div class="card shadow">
                     <div class="card-header text-center py-2">
-                        <h2 class="mb-0" style="font-size:1.25rem">
-                            <i class="fas fa-edit me-2"></i>Editar Pedido #<?= htmlspecialchars($pedido['codigo'] ?? '') ?>
-                        </h2>
+                        <h2 class="mb-0" style="font-size:1.25rem"><i class="fas fa-edit me-2"></i>Editar Pedido #<?= htmlspecialchars($pedido['codigo'] ?? '') ?></h2>
                     </div>
                     <div class="card-body p-3">
                         <?php if ($message): ?>
@@ -200,18 +207,16 @@ try {
                             <input type="hidden" name="old_estado" value="<?= htmlspecialchars($pedido['estado']) ?>">
 
                             <h3 class="section-title">Información General</h3>
-                            <div class="row g-2 info-compact align-items-end mb-2">
-                                <div class="col-md-2">
+                            <div class="row g-3 mb-2">
+                                <div class="col-md-3">
                                     <label for="codigo" class="form-label">Código de Pedido</label>
-                                    <input type="text" class="form-control" id="codigo" name="codigo"
-                                           value="<?= htmlspecialchars($pedido['codigo'] ?? '') ?>" required>
+                                    <input type="text" class="form-control form-control-sm" id="codigo" name="codigo" value="<?= htmlspecialchars($pedido['codigo'] ?? '') ?>" required>
                                 </div>
                                 <div class="col-md-4">
                                     <label for="cliente_id" class="form-label">Cliente</label>
-                                    <select class="form-select" id="cliente_id" name="cliente_id" required>
+                                    <select class="form-select form-select-sm" id="cliente_id" name="cliente_id" required>
                                         <?php foreach ($clientes_list as $cliente_item): ?>
-                                            <option value="<?= htmlspecialchars($cliente_item['id']) ?>"
-                                                <?= ($cliente_item['id'] == $pedido['cliente_id']) ? 'selected' : '' ?>>
+                                            <option value="<?= htmlspecialchars($cliente_item['id']) ?>" <?= ($cliente_item['id'] == $pedido['cliente_id']) ? 'selected' : '' ?>>
                                                 <?= htmlspecialchars($cliente_item['full_name']) ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -219,17 +224,15 @@ try {
                                 </div>
                                 <div class="col-md-2">
                                     <label for="fecha_pedido" class="form-label">Fecha de Pedido</label>
-                                    <input type="datetime-local" class="form-control" id="fecha_pedido" name="fecha_pedido"
-                                           value="<?= htmlspecialchars(date('Y-m-d\TH:i', strtotime($pedido['fecha_pedido']))) ?>" required>
+                                    <input type="datetime-local" class="form-control form-control-sm" id="fecha_pedido" name="fecha_pedido" value="<?= htmlspecialchars(date('Y-m-d\TH:i', strtotime($pedido['fecha_pedido']))) ?>" required>
                                 </div>
                                 <div class="col-md-2">
                                     <label for="fecha_entrega" class="form-label">Fecha de Entrega</label>
-                                    <input type="date" class="form-control" id="fecha_entrega" name="fecha_entrega"
-                                           value="<?= htmlspecialchars($pedido['fecha_entrega'] ? date('Y-m-d', strtotime($pedido['fecha_entrega'])) : '') ?>">
+                                    <input type="date" class="form-control form-control-sm" id="fecha_entrega" name="fecha_entrega" value="<?= htmlspecialchars($pedido['fecha_entrega'] ? date('Y-m-d', strtotime($pedido['fecha_entrega'])) : '') ?>">
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-1">
                                     <label for="estado" class="form-label">Estado</label>
-                                    <select class="form-select" id="estado" name="estado" required>
+                                    <select class="form-select form-select-sm" id="estado" name="estado" required>
                                         <?php foreach ($estados_posibles as $estado_opt): ?>
                                             <option value="<?= htmlspecialchars($estado_opt) ?>" <?= ($estado_opt == $pedido['estado']) ? 'selected' : '' ?>>
                                                 <?= htmlspecialchars(ucfirst($estado_opt)) ?>
@@ -239,77 +242,90 @@ try {
                                 </div>
                             </div>
 
+                            <!-- Notas en un solo renglón -->
                             <div class="mb-3">
                                 <label for="notas" class="form-label">Notas</label>
-                                <input type="text" class="form-control one-line" id="notas" name="notas"
-                                       value="<?= htmlspecialchars($pedido['notas'] ?? '') ?>" placeholder="Ingrese una nota (máx. una línea)">
+                                <input type="text" class="form-control form-control-sm one-line" id="notas" name="notas" value="<?= htmlspecialchars($pedido['notas'] ?? '') ?>" placeholder="Ingrese una nota (máx. una línea)">
                             </div>
 
                             <h3 class="section-title">Productos del Pedido</h3>
 
+                            <!-- Controles de paginación -->
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="page-size" class="mb-0">Mostrar</label>
+                                    <select id="page-size" class="form-select form-select-sm" style="width:auto">
+                                        <option value="10">10</option>
+                                        <option value="20" selected>20</option>
+                                        <option value="50">50</option>
+                                    </select>
+                                    <span class="ms-1">filas</span>
+                                </div>
+                                <div id="pagination-controls" class="d-flex align-items-center gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-first" title="Primera">&laquo;</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-prev" title="Anterior">&lsaquo;</button>
+                                    <span id="page-info" class="small text-muted">Página 1 de 1</span>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-next" title="Siguiente">&rsaquo;</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-last" title="Última">&raquo;</button>
+                                </div>
+                            </div>
+
                             <div class="table-responsive">
-                                <table class="table table-bordered table-sm compact-table">
+                                <table class="table table-bordered table-sm fixed-layout compact-table">
                                     <thead>
                                         <tr>
-                                            <th class="w-40">Producto</th>
-                                            <th class="text-center w-10">Cantidad</th>
-                                            <th class="text-center w-15">Precio s/IVA</th>
-                                            <th class="text-center w-15">Total s/IVA</th>
-                                            <th class="text-center w-10">Impuesto</th>
-                                            <th class="text-center w-15">Total c/Impuesto</th>
-                                            <th></th>
+                                            <th class="col-producto">Producto</th>
+                                            <th class="col-cantidad text-center">Cantidad</th>
+                                            <th class="col-precio text-center">Precio s/IVA</th>
+                                            <th class="col-impuesto text-center">Impuesto</th>
+                                            <th class="col-total text-center">Total</th>
+                                            <th class="col-acciones"></th>
                                         </tr>
                                     </thead>
                                     <tbody id="productos-container">
-                                        <?php if (!empty($detalles)): ?>
-                                            <?php foreach ($detalles as $index => $detalle):
-                                                $qty = (int)$detalle['cantidad'];
-                                                $price = (float)$detalle['precio_unitario']; // s/IVA
-                                                $tax_rate = (float)($detalle['tax_rate'] ?? 0) / 100;
-                                                $item_subtotal = $qty * $price;
-                                                $item_impuesto = $item_subtotal * $tax_rate;
-                                                $item_total = $item_subtotal + $item_impuesto;
-                                            ?>
-                                            <tr class="product-item">
-                                                <td>
-                                                    <select class="form-select form-select-sm product-select" name="producto_id[]" required>
-                                                        <option value="">Seleccione</option>
-                                                        <?php foreach ($productos_list as $prod_item): ?>
-                                                            <option value="<?= htmlspecialchars($prod_item['id']) ?>"
+                                    <?php if (!empty($detalles)): ?>
+                                        <?php foreach ($detalles as $index => $detalle):
+                                            $qty = (float)$detalle['cantidad'];
+                                            $price = (float)$detalle['precio_unitario']; // s/IVA
+                                            $item_subtotal = $qty * $price;
+                                            $item_impuesto = $item_subtotal * 0.21;
+                                            $item_total = $item_subtotal + $item_impuesto;
+                                        ?>
+                                        <tr class="product-item">
+                                            <td>
+                                                <select class="form-select form-select-sm product-select" name="producto_id[]" required>
+                                                    <option value="">Seleccione</option>
+                                                    <?php foreach ($productos_list as $prod_item): ?>
+                                                        <option value="<?= htmlspecialchars($prod_item['id']) ?>"
                                                                 data-precio="<?= htmlspecialchars($prod_item['precio_venta']) ?>"
-                                                                data-tax-rate="<?= htmlspecialchars($prod_item['tax_rate']) ?>"
                                                                 <?= ($prod_item['id'] == $detalle['producto_id']) ? 'selected' : '' ?>>
-                                                                <?= htmlspecialchars($prod_item['full_name']) ?>
-                                                            </option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                </td>
-                                                <td>
-                                                    <input type="number" class="form-control form-control-sm text-end quantity-input" name="cantidad[]"
-                                                           value="<?= htmlspecialchars($qty) ?>" min="1" step="1" required pattern="[0-9]+">
-                                                </td>
-                                                <td>
-                                                    <input type="number" class="form-control form-control-sm text-end price-input" name="precio_unitario[]"
-                                                           value="<?= htmlspecialchars(number_format($price, 2, '.', '')) ?>" min="0.00" step="0.01" required>
-                                                </td>
-                                                <td>
-                                                    <input type="text" class="form-control form-control-sm text-end readonly-input total-siva-input"
-                                                           value="<?= htmlspecialchars(number_format($item_subtotal, 2, '.', '')) ?>" readonly>
-                                                </td>
-                                                <td>
-                                                    <input type="text" class="form-control form-control-sm text-end readonly-input tax-input"
-                                                           value="<?= htmlspecialchars(number_format($item_impuesto, 2, '.', '')) ?>" readonly>
-                                                </td>
-                                                <td>
-                                                    <input type="text" class="form-control form-control-sm text-end readonly-input total-item-input"
-                                                           value="<?= htmlspecialchars(number_format($item_total, 2, '.', '')) ?>" readonly>
-                                                </td>
-                                                <td class="text-center">
-                                                    <button type="button" class="btn btn-sm btn-danger remove-item"><i class="fas fa-trash"></i></button>
-                                                </td>
-                                            </tr>
-                                            <?php endforeach; ?>
-                                        <?php endif; ?>
+                                                            <?= htmlspecialchars($prod_item['full_name']) ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control form-control-sm text-end quantity-input" name="cantidad[]"
+                                                       value="<?= htmlspecialchars(number_format($qty, 2, '.', '')) ?>" min="0.01" step="0.01" required>
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control form-control-sm text-end price-input" name="precio_unitario[]"
+                                                       value="<?= htmlspecialchars(number_format($price, 2, '.', '')) ?>" min="0.00" step="0.01" required>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control form-control-sm text-end readonly-input tax-input"
+                                                       value="<?= htmlspecialchars(number_format($item_impuesto, 2, '.', '')) ?>" readonly>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="form-control form-control-sm text-end readonly-input total-item-input"
+                                                       value="<?= htmlspecialchars(number_format($item_total, 2, '.', '')) ?>" readonly>
+                                            </td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-sm btn-danger remove-item"><i class="fas fa-trash"></i></button>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
@@ -320,28 +336,27 @@ try {
 
                             <div class="row justify-content-end mt-3">
                                 <div class="col-md-4">
-                                    <div class="p-3" style="background:#e9ecef;border-radius:.5rem">
+                                    <div class="total-section p-3" style="background:#e9ecef;border-radius:.5rem">
                                         <div class="d-flex justify-content-between mb-1">
                                             <strong>Subtotal:</strong>
                                             <div id="subtotal-pedido">$0.00</div>
                                         </div>
                                         <div class="d-flex justify-content-between mb-1">
-                                            <strong>Impuestos:</strong>
+                                            <strong>Impuestos (IVA 21%):</strong>
                                             <div id="impuestos-pedido">$0.00</div>
                                         </div>
                                         <hr class="my-2">
                                         <div class="d-flex justify-content-between fw-bold">
-                                            <strong>Total General:</strong>
+                                            <strong>Total:</strong>
                                             <div id="total-pedido">$0.00</div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="text-center mt-4">
-                                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Guardar Cambios</button>
-                                <a href="pedido_cambiar_estado.php?id=<?= $pedido_id ?>" class="btn btn-info"><i class="fas fa-sync-alt me-2"></i>Cambiar Estado</a>
-                                <a href="pedidos.php" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i>Volver a Pedidos</a>
+                            <div class="text-center mt-3">
+                                <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-save me-2"></i>Guardar Cambios</button>
+                                <a href="pedidos.php" class="btn btn-secondary btn-lg ms-2">Cancelar</a>
                             </div>
                         </form>
                         <?php endif; ?>
@@ -356,6 +371,18 @@ try {
         const productosContainer = document.getElementById('productos-container');
         const addProductBtn = document.querySelector('.btn-add-item');
         const productosData = <?= json_encode($productos_list) ?>;
+        const TAX_RATE = 0.21;
+
+        // Paginación
+        const pageSizeSelect = document.getElementById('page-size');
+        const btnFirst = document.getElementById('btn-first');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const btnLast = document.getElementById('btn-last');
+        const pageInfo = document.getElementById('page-info');
+
+        let currentPage = 1;
+        let totalPages = 1;
 
         const fmt = (n) => {
             if (isNaN(n)) n = 0;
@@ -366,15 +393,15 @@ try {
             let subtotalPedido = 0;
             let impuestosPedido = 0;
 
+            // Contabiliza TODAS las filas (incluidas las paginadas/ocultas)
             document.querySelectorAll('.product-item').forEach(item => {
-                const cantidad = parseInt(item.querySelector('.quantity-input').value) || 0;
+                const cantidad = parseFloat(item.querySelector('.quantity-input').value) || 0;
                 const precio = parseFloat(item.querySelector('.price-input').value) || 0;
-                const taxRate = parseFloat(item.querySelector('.product-select').selectedOptions[0].dataset.taxRate || 0) / 100;
-                const subtotalItem = cantidad * precio;
-                const impuestoItem = subtotalItem * taxRate;
+                const subtotalItem = cantidad * precio; // s/IVA
+                const impuestoItem = subtotalItem * TAX_RATE;
                 const totalItem = subtotalItem + impuestoItem;
 
-                item.querySelector('.total-siva-input').value = fmt(subtotalItem);
+                // Pintar por fila
                 item.querySelector('.tax-input').value = fmt(impuestoItem);
                 item.querySelector('.total-item-input').value = fmt(totalItem);
 
@@ -393,7 +420,7 @@ try {
             item.querySelector('.price-input').addEventListener('input', () => { updateTotals(); });
             item.querySelector('.remove-item').addEventListener('click', function() {
                 item.remove();
-                updateTotals();
+                paginate(); // recalcula y repinta páginas
             });
             item.querySelector('.product-select').addEventListener('change', function(e) {
                 const selectedOption = e.target.options[e.target.selectedIndex];
@@ -403,13 +430,41 @@ try {
             });
         }
 
+        function showPage(page) {
+            const pageSize = parseInt(pageSizeSelect.value, 10);
+            const rows = Array.from(document.querySelectorAll('.product-item'));
+            totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+            currentPage = Math.min(Math.max(1, page), totalPages);
+
+            rows.forEach((row, idx) => {
+                const pageForRow = Math.floor(idx / pageSize) + 1;
+                row.style.display = (pageForRow === currentPage) ? '' : 'none';
+            });
+
+            pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
+            btnPrev.disabled = btnFirst.disabled = (currentPage === 1);
+            btnNext.disabled = btnLast.disabled = (currentPage === totalPages);
+        }
+
+        function paginate() {
+            showPage(currentPage);
+            updateTotals();
+        }
+
+        // Botones de paginación
+        pageSizeSelect.addEventListener('change', () => showPage(1));
+        btnFirst.addEventListener('click', () => showPage(1));
+        btnPrev.addEventListener('click', () => showPage(currentPage - 1));
+        btnNext.addEventListener('click', () => showPage(currentPage + 1));
+        btnLast.addEventListener('click', () => showPage(totalPages));
+
         addProductBtn.addEventListener('click', function() {
             const newRow = document.createElement('tr');
             newRow.classList.add('product-item');
 
             let options = '<option value="">Seleccione</option>';
             productosData.forEach(prod => {
-                options += `<option value="${prod.id}" data-precio="${prod.precio_venta}" data-tax-rate="${prod.tax_rate}">${prod.full_name}</option>`;
+                options += `<option value="${prod.id}" data-precio="${prod.precio_venta}">${prod.full_name}</option>`;
             });
 
             newRow.innerHTML = `
@@ -417,13 +472,10 @@ try {
                     <select class="form-select form-select-sm product-select" name="producto_id[]" required>${options}</select>
                 </td>
                 <td>
-                    <input type="number" class="form-control form-control-sm text-end quantity-input" name="cantidad[]" value="1" min="1" step="1" required pattern="[0-9]+">
+                    <input type="number" class="form-control form-control-sm text-end quantity-input" name="cantidad[]" value="1" min="0.01" step="0.01" required>
                 </td>
                 <td>
                     <input type="number" class="form-control form-control-sm text-end price-input" name="precio_unitario[]" value="0.00" min="0.00" step="0.01" required>
-                </td>
-                <td>
-                    <input type="text" class="form-control form-control-sm text-end readonly-input total-siva-input" value="0,00" readonly>
                 </td>
                 <td>
                     <input type="text" class="form-control form-control-sm text-end readonly-input tax-input" value="0,00" readonly>
@@ -437,14 +489,13 @@ try {
             `;
             productosContainer.appendChild(newRow);
             attachItemListeners(newRow);
-            updateTotals();
+            paginate();
         });
 
+        // Inicializar
         document.querySelectorAll('.product-item').forEach(attachItemListeners);
-        updateTotals();
+        paginate();
     });
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

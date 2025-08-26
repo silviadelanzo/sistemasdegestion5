@@ -30,7 +30,7 @@ if (!$compra) {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Detalle de Compra #<?php echo $compra['codigo']; ?></title>
+    <title>Detalle de Compra #<?php echo htmlspecialchars($compra['codigo'] ?? ''); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -39,9 +39,9 @@ if (!$compra) {
         <div class="row">
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1><i class="fas fa-eye"></i> Detalle de Compra #<?php echo $compra['codigo']; ?></h1>
+                    <h1><i class="fas fa-eye"></i> Detalle de Compra #<?php echo htmlspecialchars($compra['codigo'] ?? ''); ?></h1>
                     <div>
-                        <a href="compra_form.php?id=<?php echo $compra['id']; ?>" class="btn btn-warning">
+                        <a href="compra_form.php?id=<?php echo htmlspecialchars($compra['id'] ?? ''); ?>" class="btn btn-warning">
                             <i class="fas fa-edit"></i> Editar
                         </a>
                         <a href="compras.php" class="btn btn-secondary">
@@ -60,15 +60,15 @@ if (!$compra) {
                                 <table class="table table-borderless">
                                     <tr>
                                         <td><strong>Código:</strong></td>
-                                        <td><?php echo $compra['codigo']; ?></td>
+                                        <td><?php echo htmlspecialchars($compra['codigo'] ?? ''); ?></td>
                                     </tr>
                                     <tr>
                                         <td><strong>Proveedor:</strong></td>
-                                        <td><?php echo $compra['proveedor_nombre']; ?></td>
+                                        <td><?php echo htmlspecialchars($compra['proveedor_nombre'] ?? ''); ?></td>
                                     </tr>
                                     <tr>
                                         <td><strong>Fecha:</strong></td>
-                                        <td><?php echo date('d/m/Y', strtotime($compra['fecha_compra'])); ?></td>
+                                        <td><?php echo htmlspecialchars(date('d/m/Y', strtotime($compra['fecha_compra']))); ?></td>
                                     </tr>
                                     <tr>
                                         <td><strong>Estado:</strong></td>
@@ -83,13 +83,13 @@ if (!$compra) {
                                                     default => 'secondary'
                                                 };
                                             ?>">
-                                                <?php echo ucfirst($compra['estado']); ?>
+                                                <?php echo htmlspecialchars(ucfirst($compra['estado'] ?? '')); ?>
                                             </span>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td><strong>Total:</strong></td>
-                                        <td><strong>$<?php echo number_format($compra['total'], 2); ?></strong></td>
+                                        <td><strong>$<?php echo htmlspecialchars(number_format($compra['total'], 2)); ?></strong></td>
                                     </tr>
                                 </table>
                             </div>
@@ -105,15 +105,15 @@ if (!$compra) {
                                 <table class="table table-borderless">
                                     <tr>
                                         <td><strong>Entrega Estimada:</strong></td>
-                                        <td><?php echo $compra['fecha_entrega_estimada'] ? date('d/m/Y', strtotime($compra['fecha_entrega_estimada'])) : 'No definida'; ?></td>
+                                        <td><?php echo htmlspecialchars($compra['fecha_entrega_estimada'] ? date('d/m/Y', strtotime($compra['fecha_entrega_estimada'])) : 'No definida'); ?></td>
                                     </tr>
                                     <tr>
                                         <td><strong>Entrega Real:</strong></td>
-                                        <td><?php echo $compra['fecha_entrega_real'] ? date('d/m/Y', strtotime($compra['fecha_entrega_real'])) : 'Pendiente'; ?></td>
+                                        <td><?php echo htmlspecialchars($compra['fecha_entrega_real'] ? date('d/m/Y', strtotime($compra['fecha_entrega_real'])) : 'Pendiente'); ?></td>
                                     </tr>
                                     <tr>
                                         <td><strong>Creación:</strong></td>
-                                        <td><?php echo date('d/m/Y H:i', strtotime($compra['fecha_creacion'])); ?></td>
+                                        <td><?php echo htmlspecialchars(date('d/m/Y H:i', strtotime($compra['fecha_creacion']))); ?></td>
                                     </tr>
                                 </table>
                             </div>
@@ -151,7 +151,7 @@ if (!$compra) {
                         <h5><i class="fas fa-comment"></i> Observaciones</h5>
                     </div>
                     <div class="card-body">
-                        <p><?php echo nl2br(htmlspecialchars($compra['observaciones'])); ?></p>
+                        <p><?php echo nl2br(htmlspecialchars($compra['observaciones'] ?? '')); ?></p>
                     </div>
                 </div>
                 <?php endif; ?>

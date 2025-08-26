@@ -292,7 +292,7 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
     <th><a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'stock', 'dir' => $orden_campo === 'stock' && $orden_direccion === 'ASC' ? 'desc' : 'asc'])) ?>">Stock <i class="bi bi-arrow-down-up"></i></a></th>
     <th><a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'pedidos_pendientes', 'dir' => $orden_campo === 'pedidos_pendientes' && $orden_direccion === 'ASC' ? 'desc' : 'asc'])) ?>">Pdo. <i class="bi bi-arrow-down-up"></i></a></th>
     <th><a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'stock_minimo', 'dir' => $orden_campo === 'stock_minimo' && $orden_direccion === 'ASC' ? 'desc' : 'asc'])) ?>">Stock Mín. <i class="bi bi-arrow-down-up"></i></a></th>
-    <th><a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'precio_venta', 'dir' => $orden_campo === 'precio_venta' && $orden_direccion === 'ASC' ? 'desc' : 'asc'])) ?>">Precio <i class="bi bi-arrow-down-up"></i></a></th>
+    <th><a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'precio_venta', 'dir' => $orden_campo === 'precio_venta' && $orden_direccion === 'ASC' ? 'desc' : 'asc'])) ?>">Valor Total <i class="bi bi-arrow-down-up"></i></a></th>
     <th><a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'fecha_creacion', 'dir' => $orden_campo === 'fecha_creacion' && $orden_direccion === 'ASC' ? 'desc' : 'asc'])) ?>">Fecha Alta <i class="bi bi-arrow-down-up"></i></a></th>
     <th>Acciones</th>
     </tr>
@@ -341,11 +341,11 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
     <?php endif; ?>
     </td>
     <td><span class="text-muted"><?= number_format($prod['stock_minimo']) ?></span></td>
-    <td><strong>$<?= number_format($prod['precio_venta'], 2) ?></strong></td>
+    <td><strong>$<?= number_format($prod['precio_venta'] * $prod['stock'], 2) ?></strong></td>
     <td><small class="text-muted"><?= date('d/m/Y', strtotime($prod['fecha_creacion'])) ?></small></td>
     <td>
     <div class="btn-group" role="group">
-    <a href="http://localhost/sistemadgestion5/modulos/Inventario/producto_form.php?id=<?= $prod['id'] ?>" class="btn btn-warning btn-action" title="Editar"><i class="bi bi-pencil"></i></a>
+    <a href="producto_form.php?id=<?= $prod['id'] ?>" class="btn btn-warning btn-action" title="Editar"><i class="bi bi-pencil"></i></a>
     <a href="editform.php?id=<?= $prod['id'] ?>" class="btn btn-secondary btn-action" title="Editar Imagen"><i class="bi bi-image"></i></a>
     <a href="producto_detalle.php?id=<?= $prod['id'] ?>" class="btn btn-info btn-action" title="Ver Detalle"><i class="bi bi-eye"></i></a>
     <button onclick="inactivarProducto(<?= $prod['id'] ?>, '<?= htmlspecialchars(addslashes($prod['nombre'])) ?>')" class="btn btn-secondary btn-action" title="Inactivar"><i class="bi bi-archive"></i></button>
@@ -462,79 +462,86 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
     let productoIdActual = null;
 
     function inactivarProducto(id, nombre) {
-    productoIdActual = id;
-    document.getElementById('nombreProductoInactivar').textContent = nombre;
-    new bootstrap.Modal(document.getElementById('modalInactivar')).show();
+        productoIdActual = id;
+        document.getElementById('nombreProductoInactivar').textContent = nombre;
+        new bootstrap.Modal(document.getElementById('modalInactivar')).show();
     }
 
     function eliminarProducto(id, nombre) {
-    productoIdActual = id;
-    document.getElementById('nombreProductoEliminar').textContent = nombre;
-    new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+        productoIdActual = id;
+        document.getElementById('nombreProductoEliminar').textContent = nombre;
+        new bootstrap.Modal(document.getElementById('modalEliminar')).show();
     }
 
     document.getElementById('confirmarInactivar').addEventListener('click', function() {
-    if (productoIdActual) {
-    gestionarProducto('inactivar', productoIdActual);
-    }
+        if (productoIdActual) {
+            gestionarProducto('inactivar', productoIdActual);
+        }
     });
 
     document.getElementById('confirmarEliminar').addEventListener('click', function() {
-    if (productoIdActual) {
-    gestionarProducto('eliminar', productoIdActual);
-    }
+        if (productoIdActual) {
+            gestionarProducto('eliminar', productoIdActual);
+        }
     });
 
     function gestionarProducto(accion, id) {
-    const btn = accion === 'inactivar' ? document.getElementById('confirmarInactivar') : document.getElementById('confirmarEliminar');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Procesando...';
-    btn.disabled = true;
+        const btn = accion === 'inactivar' ? document.getElementById('confirmarInactivar') : document.getElementById('confirmarEliminar');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Procesando...';
+        btn.disabled = true;
 
-    fetch('gestionar_producto.php', {
-    method: 'POST',
-    headers: {
-    'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-    accion: accion,
-    id: id
-    })
-    })
-    .then(response => response.json())
-    .then(data => {
-    if (data.success) {
-    const modalId = accion === 'inactivar' ? 'modalInactivar' : 'modalEliminar';
-    bootstrap.Modal.getInstance(document.getElementById(modalId)).hide();
-    mostrarMensaje(data.message, 'success');
-    setTimeout(() => window.location.reload(), 700);
-    } else {
-    mostrarMensaje(data.message || 'Error desconocido', 'danger');
-    }
-    })
-    .catch(error => {
-    console.error('Error:', error);
-    mostrarMensaje('Error al procesar la solicitud.', 'danger');
-    })
-    .finally(() => {
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-    });
+        fetch('gestionar_producto.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                accion: accion,
+                id: id
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const modalId = accion === 'inactivar' ? 'modalInactivar' : 'modalEliminar';
+                bootstrap.Modal.getInstance(document.getElementById(modalId)).hide();
+                mostrarMensaje(data.message, 'success');
+                setTimeout(() => window.location.reload(), 700);
+            } else {
+                // Mostrar mensaje de error específico
+                mostrarMensaje(data.message || 'Error desconocido', 'danger');
+                // Cerrar el modal si hay error
+                const modalId = accion === 'inactivar' ? 'modalInactivar' : 'modalEliminar';
+                bootstrap.Modal.getInstance(document.getElementById(modalId)).hide();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mostrarMensaje('Error al procesar la solicitud.', 'danger');
+            // Cerrar el modal si hay error
+            const modalId = accion === 'inactivar' ? 'modalInactivar' : 'modalEliminar';
+            bootstrap.Modal.getInstance(document.getElementById(modalId)).hide();
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
     }
 
     function mostrarMensaje(mensaje, tipo) {
-    const alertContainer = document.createElement('div');
-    alertContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1056; min-width: 300px;';
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
-    alertDiv.innerHTML = `<i class="bi bi-${tipo === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill'} me-2"></i>${mensaje}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-    alertContainer.appendChild(alertDiv);
-    document.body.appendChild(alertContainer);
-    new bootstrap.Alert(alertDiv);
-    setTimeout(() => {
-    alertDiv.classList.remove('show');
-    setTimeout(() => alertContainer.remove(), 150);
-    }, 5000);
+        const alertContainer = document.createElement('div');
+        alertContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1056; min-width: 300px;';
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alertDiv.innerHTML = `<i class="bi bi-${tipo === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill'} me-2"></i>${mensaje}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+        alertContainer.appendChild(alertDiv);
+        document.body.appendChild(alertContainer);
+        new bootstrap.Alert(alertDiv);
+        setTimeout(() => {
+            alertDiv.classList.remove('show');
+            setTimeout(() => alertContainer.remove(), 150);
+        }, 5000);
     }
     </script>
 </body>

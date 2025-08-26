@@ -343,7 +343,6 @@ function gestionarProducto(accion, id) {
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Procesando...'; btn.disabled = true;
 
-    // CORRIGE LA RUTA DE FETCH AQUÍ:
     fetch('gestionar_producto.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},

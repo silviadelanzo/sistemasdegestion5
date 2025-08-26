@@ -625,6 +625,7 @@ try {
     <tr>
     <td colspan="4" class="text-center">
     <button type="submit" class="btn btn-primary">Guardar proveedores</button>
+    <a href="producto_form.php" class="btn btn-success ms-2">Nuevo Producto</a>
     <a href="http://localhost/sistemadgestion5/modulos/Inventario/productos.php" class="btn btn-secondary ms-2">Volver</a>
     <a class="btn btn-outline-secondary ms-2" href="<?php echo $_SERVER['PHP_SELF'].'?id='.$producto_id.'&step=basico'; ?>">Volver a datos básicos</a>
     </td>

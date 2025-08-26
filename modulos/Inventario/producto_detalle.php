@@ -62,6 +62,43 @@ try {
         $estado_stock = 'stock bajo';
         $color_stock = 'warning';
     }
+
+    // Determinar la ruta correcta de la imagen
+    $ruta_imagen = '';
+    $ruta_base_imagenes = '../../assets/img/productos/';
+    
+    if (!empty($producto['imagen'])) {
+        // Primero intentar con la ruta exacta de la base de datos
+        if (file_exists($producto['imagen'])) {
+            $ruta_imagen = $producto['imagen'];
+        } 
+        // Si no, intentar con la ruta desde assets
+        elseif (file_exists($ruta_base_imagenes . basename($producto['imagen']))) {
+            $ruta_imagen = $ruta_base_imagenes . basename($producto['imagen']);
+        }
+        // Si no, intentar con el código del producto
+        elseif (file_exists($ruta_base_imagenes . $producto['codigo'] . '.jpg')) {
+            $ruta_imagen = $ruta_base_imagenes . $producto['codigo'] . '.jpg';
+        }
+        elseif (file_exists($ruta_base_imagenes . $producto['codigo'] . '.png')) {
+            $ruta_imagen = $ruta_base_imagenes . $producto['codigo'] . '.png';
+        }
+        elseif (file_exists($ruta_base_imagenes . $producto['codigo'] . '.jpeg')) {
+            $ruta_imagen = $ruta_base_imagenes . $producto['codigo'] . '.jpeg';
+        }
+    } else {
+        // Si no hay imagen en la BD, buscar por código
+        if (file_exists($ruta_base_imagenes . $producto['codigo'] . '.jpg')) {
+            $ruta_imagen = $ruta_base_imagenes . $producto['codigo'] . '.jpg';
+        }
+        elseif (file_exists($ruta_base_imagenes . $producto['codigo'] . '.png')) {
+            $ruta_imagen = $ruta_base_imagenes . $producto['codigo'] . '.png';
+        }
+        elseif (file_exists($ruta_base_imagenes . $producto['codigo'] . '.jpeg')) {
+            $ruta_imagen = $ruta_base_imagenes . $producto['codigo'] . '.jpeg';
+        }
+    }
+
 } catch (Exception $e) {
     $error = $e->getMessage();
 }
@@ -168,16 +205,27 @@ try {
                 <div class="col-md-6">
                     <div class="card info-card">
                         <div class="card-body text-center">
-                            <?php if (!empty($producto['imagen']) && file_exists('../../' . $producto['imagen'])): ?>
-                                <img src="../../<?php echo htmlspecialchars($producto['imagen']); ?>"
+                            <?php if (!empty($ruta_imagen) && file_exists($ruta_imagen)): ?>
+                                <img src="<?php echo htmlspecialchars($ruta_imagen); ?>"
                                     alt="<?php echo htmlspecialchars($producto['nombre']); ?>"
                                     class="product-image mb-3">
+                                <div class="mt-2">
+                                    <small class="text-muted">Imagen encontrada: <?php echo htmlspecialchars(basename($ruta_imagen)); ?></small>
+                                </div>
                             <?php else: ?>
                                 <div class="bg-light d-flex align-items-center justify-content-center"
                                     style="height: 300px; border-radius: 8px;">
                                     <div class="text-center text-muted">
                                         <i class="bi bi-image display-1"></i>
                                         <p class="mt-2">Sin imagen</p>
+                                        <?php if (!empty($producto['imagen'])): ?>
+                                            <small class="text-danger">
+                                                Imagen no encontrada en: <?php echo htmlspecialchars($producto['imagen']); ?>
+                                            </small>
+                                        <?php endif; ?>
+                                        <small class="text-info d-block mt-2">
+                                            Buscando en: <?php echo htmlspecialchars($ruta_base_imagenes); ?>
+                                        </small>
                                     </div>
                                 </div>
                             <?php endif; ?>

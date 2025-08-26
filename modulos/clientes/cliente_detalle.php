@@ -195,11 +195,11 @@ function getEstadoPedidoClass($estado)
                 <!-- Encabezado de la página -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
-                        <h2 class="mb-0"><?php echo htmlspecialchars($cliente['nombre'] . ' ' . $cliente['apellido']); ?></h2>
+                        <h2 class="mb-0"><?php echo htmlspecialchars(($cliente['nombre'] ?? '') . ' ' . ($cliente['apellido'] ?? '')); ?></h2>
                         <p class="text-muted mb-0">
-                            Código: <code><?php echo htmlspecialchars($cliente['codigo']); ?></code>
+                            Código: <code><?php echo htmlspecialchars($cliente['codigo'] ?? ''); ?></code>
                             <?php if ($cliente['empresa']): ?>
-                                | Empresa: <strong><?php echo htmlspecialchars($cliente['empresa']); ?></strong>
+                                | Empresa: <strong><?php echo htmlspecialchars($cliente['empresa'] ?? ''); ?></strong>
                             <?php endif; ?>
                         </p>
                     </div>
@@ -280,7 +280,7 @@ function getEstadoPedidoClass($estado)
                     <div class="card">
                         <div class="card-header"><i class="bi bi-journal-text me-2"></i>Notas Adicionales</div>
                         <div class="card-body">
-                            <p class="card-text"><?php echo nl2br(htmlspecialchars($cliente['notas'])); ?></p>
+                            <p class="card-text"><?php echo nl2br(htmlspecialchars($cliente['notas'] ?? '')); ?></p>
                         </div>
                     </div>
                 <?php endif; ?>

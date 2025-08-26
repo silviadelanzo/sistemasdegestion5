@@ -30,40 +30,62 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
 
-    // --- NUEVA COMPROBACIÓN DE PEDIDOS PENDIENTES ---
-    // Antes de realizar cualquier acción, verificamos si el producto tiene pedidos pendientes.
-    $sql_check = "SELECT COUNT(*) 
-                  FROM pedido_detalles pd
-                  JOIN pedidos pe ON pd.pedido_id = pe.id
-                  WHERE pd.producto_id = :id_producto AND pe.estado = 'pendiente'";
-    
-    $stmt_check = $pdo->prepare($sql_check);
-    $stmt_check->bindParam(':id_producto', $id_producto, PDO::PARAM_INT);
-    $stmt_check->execute();
-    $pedidos_pendientes = $stmt_check->fetchColumn();
+    // --- COMPROBACIÓN DE PEDIDOS PENDIENTES ---
+    // Solo para inactivar y eliminar, no para reactivar
+    if ($accion === 'inactivar' || $accion === 'eliminar') {
+        $sql_check = "SELECT COUNT(*) 
+                      FROM pedido_detalles pd
+                      JOIN pedidos pe ON pd.pedido_id = pe.id
+                      WHERE pd.producto_id = :id_producto AND pe.estado = 'pendiente'";
+        
+        $stmt_check = $pdo->prepare($sql_check);
+        $stmt_check->bindParam(':id_producto', $id_producto, PDO::PARAM_INT);
+        $stmt_check->execute();
+        $pedidos_pendientes = $stmt_check->fetchColumn();
 
-    if ($pedidos_pendientes > 0) {
-        // Si hay pedidos pendientes, no permitimos la acción y enviamos un mensaje de error.
-        $mensaje_error = "No se puede " . ($accion === 'eliminar' ? 'eliminar' : 'inactivar') . " el producto porque tiene {$pedidos_pendientes} pedido(s) pendiente(s).";
-        echo json_encode(['success' => false, 'message' => $mensaje_error]);
-        exit;
+        if ($pedidos_pendientes > 0) {
+            // Si hay pedidos pendientes, no permitimos la acción
+            $mensaje_error = "No se puede " . ($accion === 'eliminar' ? 'eliminar' : 'inactivar') . " el producto porque tiene {$pedidos_pendientes} pedido(s) pendiente(s).";
+            echo json_encode(['success' => false, 'message' => $mensaje_error]);
+            exit;
+        }
     }
-    // --- FIN DE LA NUEVA COMPROBACIÓN ---
 
+    // --- COMPROBACIÓN DE STOCK PARA INACTIVAR ---
+    if ($accion === 'inactivar') {
+        $sql_stock = "SELECT stock FROM productos WHERE id = :id_producto";
+        $stmt_stock = $pdo->prepare($sql_stock);
+        $stmt_stock->bindParam(':id_producto', $id_producto, PDO::PARAM_INT);
+        $stmt_stock->execute();
+        $stock_actual = $stmt_stock->fetchColumn();
 
-    // Si no hay pedidos pendientes, procedemos con la acción solicitada.
+        if ($stock_actual > 0) {
+            echo json_encode(['success' => false, 'message' => 'No se puede inactivar el producto porque tiene stock disponible.']);
+            exit;
+        }
+    }
+    // --- FIN DE LA COMPROBACIÓN DE STOCK ---
+
+    // Procedemos con la acción solicitada
     switch ($accion) {
         case 'inactivar':
-            $sql = "UPDATE productos SET activo = 0 WHERE id = :id";
+            $sql = "UPDATE productos SET activo = 0, fecha_modificacion = NOW() WHERE id = :id";
             $stmt = $pdo->prepare($sql);
             $stmt->bindParam(':id', $id_producto, PDO::PARAM_INT);
             $stmt->execute();
             echo json_encode(['success' => true, 'message' => 'Producto inactivado correctamente.']);
             break;
 
+        case 'reactivar':
+            $sql = "UPDATE productos SET activo = 1, fecha_modificacion = NOW() WHERE id = :id";
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindParam(':id', $id_producto, PDO::PARAM_INT);
+            $stmt->execute();
+            echo json_encode(['success' => true, 'message' => 'Producto reactivado correctamente.']);
+            break;
+
         case 'eliminar':
-            // Por seguridad, es mejor asegurarse de que no haya dependencias antes de borrar.
-            // La comprobación de pedidos pendientes ya es un gran paso.
+            // Por seguridad, es mejor asegurarse de que no haya dependencias antes de borrar
             $sql = "DELETE FROM productos WHERE id = :id";
             $stmt = $pdo->prepare($sql);
             $stmt->bindParam(':id', $id_producto, PDO::PARAM_INT);
