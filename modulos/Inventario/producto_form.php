@@ -130,6 +130,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($codigo_barra === '') $errores[] = 'El código de barras es obligatorio.';
     if ($precio_compra <= 0) $errores[] = 'El precio de compra debe ser mayor a 0.';
 
+    if (empty($categoria_id)) {
+        $errores[] = 'Debes seleccionar una categoría.';
+    }
+    if (empty($lugar_id)) {
+        $errores[] = 'Debes seleccionar un lugar.';
+    }
+
     // Unicidad código de barras
     if (empty($errores)) {
     try {
@@ -187,6 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $moneda_id, $impuesto_id,
     $producto_id
     ]);
+    registrar_auditoria('MODIFICACION_PRODUCTO', 'productos', $producto_id, "Producto modificado: " . $nombre);
     } else {
     $sql = "INSERT INTO productos
     (codigo, codigo_barra, nombre, descripcion, categoria_id, lugar_id, unidad_medida,
@@ -206,6 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $moneda_id, $impuesto_id, 0
     ]);
     $producto_id = intval($pdo->lastInsertId());
+    registrar_auditoria('ALTA_PRODUCTO', 'productos', $producto_id, "Producto creado: " . $nombre);
     $es_edicion = true;
     }
 
@@ -293,6 +302,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $upd = $pdo->prepare("UPDATE productos SET publicar_web=? WHERE id=?");
     $upd->execute([$publicar_web, $producto_id]);
+
+    $stmt_prod_nombre = $pdo->prepare("SELECT nombre FROM productos WHERE id = ?");
+    $stmt_prod_nombre->execute([$producto_id]);
+    $nombre_producto = $stmt_prod_nombre->fetchColumn();
+    registrar_auditoria('MODIFICACION_PROVEEDORES_PRODUCTO', 'productos_proveedores', $producto_id, "Proveedores del producto '" . $nombre_producto . "' modificados.");
 
     $mensaje_exito = 'Proveedores e imagen guardados correctamente.';
     } catch (PDOException $e) {

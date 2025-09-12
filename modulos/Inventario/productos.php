@@ -100,7 +100,8 @@ try {
     FROM productos WHERE activo=1";
     $stats = $pdo->query($stats_sql)->fetch();
 
-    $categorias = $pdo->query("SELECT id, nombre FROM categorias WHERE activo = 1 ORDER BY nombre")->fetchAll();
+        $categorias = $pdo->query("SELECT id, nombre FROM categorias WHERE activo = 1 ORDER BY nombre")->fetchAll();
+
     $lugares = $pdo->query("SELECT id, nombre FROM lugares WHERE activo = 1 ORDER BY nombre")->fetchAll();
 } catch (Exception $e) {
     $error_message = "Error al cargar productos: " . $e->getMessage();

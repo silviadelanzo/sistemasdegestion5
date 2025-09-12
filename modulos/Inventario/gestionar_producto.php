@@ -30,6 +30,8 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
 
+    
+
     // --- COMPROBACIÓN DE PEDIDOS PENDIENTES ---
     // Solo para inactivar y eliminar, no para reactivar
     if ($accion === 'inactivar' || $accion === 'eliminar') {
@@ -67,11 +69,13 @@ try {
     // --- FIN DE LA COMPROBACIÓN DE STOCK ---
 
     // Procedemos con la acción solicitada
+    
     switch ($accion) {
         case 'inactivar':
             $sql = "UPDATE productos SET activo = 0, fecha_modificacion = NOW() WHERE id = :id";
             $stmt = $pdo->prepare($sql);
             $stmt->bindParam(':id', $id_producto, PDO::PARAM_INT);
+
             $stmt->execute();
             echo json_encode(['success' => true, 'message' => 'Producto inactivado correctamente.']);
             break;
@@ -80,15 +84,16 @@ try {
             $sql = "UPDATE productos SET activo = 1, fecha_modificacion = NOW() WHERE id = :id";
             $stmt = $pdo->prepare($sql);
             $stmt->bindParam(':id', $id_producto, PDO::PARAM_INT);
+
             $stmt->execute();
             echo json_encode(['success' => true, 'message' => 'Producto reactivado correctamente.']);
             break;
 
         case 'eliminar':
-            // Por seguridad, es mejor asegurarse de que no haya dependencias antes de borrar
             $sql = "DELETE FROM productos WHERE id = :id";
             $stmt = $pdo->prepare($sql);
             $stmt->bindParam(':id', $id_producto, PDO::PARAM_INT);
+
             $stmt->execute();
             echo json_encode(['success' => true, 'message' => 'Producto eliminado permanentemente.']);
             break;

@@ -99,11 +99,8 @@ try {
         body {
             background-color: #f8f9fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            margin: 0;
         }
+        .main-container { margin: 0 auto; max-width: 1200px; padding: 20px; }
 
         .page-header-section {
             background-color: #f8f9fa;
@@ -321,6 +318,8 @@ try {
     <!-- NAVBAR UNIFICADO -->
     <?php include '../../config/navbar_code.php'; ?>
 
+    <div class="main-container">
+
     <div class="page-header-section">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Productos por Ubicación</h2>
@@ -497,6 +496,8 @@ try {
                 </div>
             </div>
         </div>
+    </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
