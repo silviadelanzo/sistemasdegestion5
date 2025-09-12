@@ -32,6 +32,8 @@ modulos/paneldecontrol.php
 dashboard.php
 testdb.php
 scripts/
+images/*.png
+sistemadgestion5_docs/
 
 
 # Uploads y archivos generados
