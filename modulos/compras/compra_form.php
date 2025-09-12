@@ -240,10 +240,10 @@ $estados = $stmt_estados->fetchAll(PDO::FETCH_ASSOC);
                                                     <input type="hidden" name="productos[codigo_barra][]" value="<?= htmlspecialchars($detalle['codigo_barra'] ?? '') ?>">
                                                     <?= htmlspecialchars($detalle['nombre']) ?>
                                                 </td>
-                                                <td><input type="number" class="form-control precio" name="productos[precio][]" value="<?= $detalle['precio_unitario'] ?>" step="0.01"></td>
+                                                <td><input type="number" class="form-control precio" name="productos[precio][]" value="<?= $detalle['precio_unitario'] ?>" step="0.01" readonly></td>
                                                 <td><input type="number" class="form-control" value="<?= $detalle['stock'] ?>" readonly></td>
                                                 <td><input type="number" class="form-control" value="<?= $detalle['stock_minimo'] ?>" readonly></td>
-                                                <td><input type="number" class="form-control cantidad" name="productos[cantidad][]" value="<?= $detalle['cantidad_pedida'] ?>"></td>
+                                                <td><input type="number" class="form-control cantidad" name="productos[cantidad][]" value="<?= $detalle['cantidad_pedida'] ?>" min="1"></td>
                                                 <td class="subtotal">$<?= number_format($detalle['cantidad_pedida'] * $detalle['precio_unitario'], 2) ?></td>
                                                 <td><button type="button" class="btn btn-danger btn-sm btn-remove">X</button></td>
                                             </tr>
@@ -445,10 +445,10 @@ $estados = $stmt_estados->fetchAll(PDO::FETCH_ASSOC);
                     <input type="hidden" name="productos[codigo_barra][]" value="${producto.codigo_barra || ''}">
                     ${producto.nombre}
                 </td>
-                <td><input type="number" class="form-control precio" name="productos[precio][]" value="${producto.precio_compra || '0.00'}" step="0.01"></td>
+                <td><input type="number" class="form-control precio" name="productos[precio][]" value="${producto.precio_compra || '0.00'}" step="0.01" readonly></td>
                 <td><input type="number" class="form-control" value="${producto.stock || 0}" readonly></td>
                 <td><input type="number" class="form-control" value="${producto.stock_minimo || 0}" readonly></td>
-                <td><input type="number" class="form-control cantidad" name="productos[cantidad][]" value="${cantidad_a_comprar}"></td>
+                <td><input type="number" class="form-control cantidad" name="productos[cantidad][]" value="${cantidad_a_comprar}" min="1"></td>
                 <td class="subtotal">${(cantidad_a_comprar * (parseFloat(producto.precio_compra) || 0)).toFixed(2)}</td>
                 <td><button type="button" class="btn btn-danger btn-sm btn-remove">X</button></td>
             `;
