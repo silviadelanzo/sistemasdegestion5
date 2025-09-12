@@ -25,6 +25,22 @@ if (!$compra) {
     header("Location: compras.php");
     exit;
 }
+
+// Obtener detalles de la compra (productos)
+$stmt_detalles = $pdo->prepare("
+    SELECT 
+        cd.cantidad_pedida, 
+        cd.cantidad_recibida, 
+        cd.precio_unitario, 
+        p.nombre as producto_nombre,
+        p.codigo as producto_codigo
+    FROM compra_detalles cd
+    LEFT JOIN productos p ON cd.producto_id = p.id
+    WHERE cd.compra_id = ?
+");
+$stmt_detalles->execute([$id]);
+$detalles = $stmt_detalles->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -138,7 +154,24 @@ if (!$compra) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- Cargar productos dinámicamente -->
+                                    <?php if (empty($detalles)): ?>
+                                        <tr>
+                                            <td colspan="5" class="text-center">No hay productos en esta compra.</td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php foreach ($detalles as $detalle): ?>
+                                            <tr>
+                                                <td>
+                                                    <?= htmlspecialchars($detalle['producto_nombre']) ?><br>
+                                                    <small class="text-muted"><?= htmlspecialchars($detalle['producto_codigo']) ?></small>
+                                                </td>
+                                                <td><?= htmlspecialchars($detalle['cantidad_pedida']) ?></td>
+                                                <td><?= htmlspecialchars($detalle['cantidad_recibida'] ?? '0') ?></td>
+                                                <td>$<?= htmlspecialchars(number_format($detalle['precio_unitario'], 2)) ?></td>
+                                                <td>$<?= htmlspecialchars(number_format($detalle['cantidad_pedida'] * $detalle['precio_unitario'], 2)) ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
