@@ -1,72 +1,31 @@
-# TAREAS PENDIENTES DE ORGANIZACIÓN DEL PROYECTO (Asistente Gemini)
+## Tareas Pendientes (Próxima Sesión)
 
-Este archivo sirve como recordatorio de las tareas de organización que aún quedan por completar en el proyecto.
+### 1. Conectar Gráficos del Dashboard a la Base de Datos:
+- **Prioridad Alta:** Reemplazar los datos simulados de los gráficos en `paneldecontrol.php` con datos reales.
+  - **Gráfico de Ventas del Mes:** Crear un script PHP que calcule las ventas por semana o por día para el mes actual y conectarlo al gráfico de barras.
+  - **Gráfico de Ventas Anuales:** Modificar el script para que obtenga las ventas totales de cada mes del año actual.
+  - **Tarjetas de Estadísticas:** Conectar las tarjetas (Ventas del Mes, Productos Bajos de Stock, Nuevos Clientes) a consultas reales de la base de datos.
 
-## 1. Scripts de Utilidad en la Carpeta `scripts/`
+### 2. Sistema de Pedidos con OCR:
+- **Prioridad Media:** Continuar con el desarrollo del sistema de procesamiento de pedidos.
+  - **Crear Mockup del Formulario:** Diseñar y generar el archivo HTML con el borrador visual del formulario de pedidos optimizado para OCR, como se discutió.
+  - **Implementar Lógica de OCR:** Una vez aprobado el formulario, empezar a desarrollar la lógica para recibir la imagen, enviarla a un servicio de OCR y procesar la respuesta para generar un pedido.
 
-**Estado:** La mayoría de los scripts PHP de utilidad han sido movidos y corregidos.
+### 3. Funcionalidades Adicionales y Pruebas:
+- **Prioridad Baja:** Tareas de mejora y mantenimiento.
+  - **Configurar Cron Job:** Recordar al usuario la necesidad de configurar el cron job para `cron_agenda_alerts.php` en su servidor para el envío de alertas automáticas.
+  - **Pruebas Exhaustivas:** Realizar pruebas completas de todas las funcionalidades implementadas, especialmente la agenda y el dashboard.
+  - **Notificaciones Avanzadas:** Explorar opciones para notificaciones más allá del correo electrónico (ej. notificaciones internas en el sistema).
 
-**Scripts PHP pendientes de mover desde la raíz a `scripts/`:**
-*   `ai_parser.php` (Clase, considerar mover a `classes/` o `lib/`)
-*   `barcode.php` (Función, considerar mover a `lib/` o `classes/`)
-*   `fix_include_dev_paths.php`
-*   `obtener_ultimo_codigo.php`
-*   `product_matcher.php` (Clase, considerar mover a `classes/` o `lib/`)
-*   `simple_pdf.php` (Clase, considerar mover a `classes/` o `lib/`)
+### 4. Módulo de Compras:
+- **Prioridad Alta:** Corregir errores y mejorar el layout en `modulos/compras/compras.php`.
+  - Ajustar el tamaño de las tarjetas de resumen.
+  - Resolver el error `Undefined variable $compras_pendientes` y `number_format()` deprecation.
+  - Rediseñar la sección de filtros para que ocupe una sola línea y optimizar el espacio.
 
-**Archivos problemáticos (requieren revisión manual o solución específica):**
-*   `auditar_compatibilidad_bd.php` (No se pudo leer/corregir automáticamente)
-*   `excel_php81.php` (No se pudo corregir completamente)
-*   `excel_planmaker.php` (No se pudo corregir completamente)
+### 5. Transición a Sistema Monocliente:
 
-**Próximos pasos para scripts:**
-*   Mover los scripts PHP restantes a `scripts/`.
-*   Analizar y corregir sus rutas internas.
-*   Revisar los archivos problemáticos (`auditar_compatibilidad_bd.php`, `excel_php81.php`, `excel_planmaker.php`).
-*   Considerar mover las clases (`ai_parser.php`, `barcode.php`, `product_matcher.php`, `simple_pdf.php`) a una carpeta más apropiada como `classes/` o `lib/` si no son scripts de ejecución directa.
-
----
-
-## 2. Documentación `.md` en `sistemadgestion5_docs/legacy_docs/`
-
-**Estado:** Pendiente de mover.
-
-**Archivos `.md` a mover:**
-*   `ANALISIS_SISTEMA_GEOGRAFICO_COMPLETO.md`
-*   `CORRECCIONES_COMPLETADAS.md`
-*   `CORRECCIONES_FINALES_PROVEEDORES.md`
-*   `GUIA_ESCANER_CELULAR.md`
-*   `GUIA_ESCANER_MEJORADO.md`
-*   `MEJORAS_PROVEEDORES_COMPLETADAS.md`
-*   `MEMORIA_PROYECTO_COMPRAS.md`
-*   `MODALES_UNIFICADOS_COMPLETO.md`
-*   `PROVEEDORES_CORREGIDO_COMPLETO.md`
-*   `README_DOCKER.md`
-*   `RESUMEN_FINAL_UNIFICACION.md`
-*   `RESUMEN_MODAL_UNIFICADO.md`
-*   `SISTEMA_FINAL_COMPLETO.md`
-*   `SISTEMA_FINAL_CONCENTRADO.md`
-*   `SISTEMA_UNIFICADO_COMPLETO.md`
-*   `SOLUCION_FINAL_NEW_PROV.md`
-
-**Nota:** El archivo `README.md` principal **NO** será movido.
-
----
-
-## 3. Implementación de Seguridad en Archivos PHP
-
-**Objetivo:** Asegurar que todas las páginas PHP requieran autenticación y tengan el encabezado de tipo de contenido correcto.
-
-**Código a insertar al inicio de cada archivo PHP (después de `<?php` y `session_start();` si existen):**
-
-```php
-iniciarSesionSegura();
-requireLogin('../../login.php'); // Ajustar la ruta si es necesario
-header('Content-Type: text/html; charset=UTF-8');
-```
-
-**Consideraciones:**
-*   **Excluir:** `login.php`, `logout.php`, y archivos que no generen HTML (ej. APIs que devuelvan JSON, clases).
-*   **Verificar:** Que las funciones `iniciarSesionSegura()` y `requireLogin()` estén definidas y accesibles.
-
----
+- **Prioridad Muy Alta:** Eliminar todas las funcionalidades y referencias relacionadas con el entorno multicliente.
+  - Eliminar código y lógica de la aplicación que maneje `cuenta_id` o múltiples clientes.
+  - Eliminar la tabla `cuentas` y cualquier columna `cuenta_id` de otras tablas de la base de datos.
+  - Asegurar que el sistema opere exclusivamente para un único cliente.

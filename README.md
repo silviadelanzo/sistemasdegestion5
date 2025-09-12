@@ -60,6 +60,8 @@ sistemadgestion5/
 2. Ajusta las credenciales de base de datos
 3. Configura las rutas segun tu servidor
 
+
+
 ## Modulos Disponibles
 
 ### Administracion
