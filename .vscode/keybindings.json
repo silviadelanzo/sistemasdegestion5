@@ -150,5 +150,12 @@
         "key": "ctrl+shift+f6",
         "command": "workbench.action.tasks.runTask",
         "args": "📊 Ver Estadísticas de Backups"
+    },
+    {
+        "key": "ctrl+f10",
+        "command": "workbench.action.terminal.sendText",
+        "args": {
+            "text": "php scripts/ejemplo_conexion_segura.php\n"
+        }
     }
 ]

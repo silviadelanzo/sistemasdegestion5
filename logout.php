@@ -3,6 +3,10 @@ require_once 'config/config.php';
 
 iniciarSesionSegura();
 
+if (isset($_SESSION['id_usuario'])) {
+    registrar_auditoria('CIERRE_SESION', null, null, 'Cierre de sesión exitoso');
+}
+
 // Destruir todas las variables de sesión
 $_SESSION = array();
 

@@ -715,6 +715,25 @@
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
+        },
+        {
+            "label": "🔐 Verificar Conexión Segura",
+            "type": "shell",
+            "command": "php",
+            "args": [
+                "scripts/ejemplo_conexion_segura.php"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new",
+                "clear": true
+            }
         }
     ]
 }
