@@ -1,4 +1,4 @@
-﻿# Archivos de configuracion local
+# Archivos de configuracion local
 config/config.php
 *.local.php
 db.php
@@ -15,6 +15,19 @@ auto_login_remitos.php
 *.bak
 *.cache
 *.log
+prueba_cursor.txt
+docs/Chat*.txt
+
+# Archivos generados y copias
+local_schema.json
+remote_schema.json
+foreign_keys.json
+*copia*.php
+config/config - copia.php
+database/
+TAREAS_REALIZADAS_SESION_2025-09-05.md
+TareasRealizadas.md
+
 
 # Uploads y archivos generados
 assets/uploads/*
@@ -28,6 +41,7 @@ assets/scanner_processed/*
 *.zip
 *.sql
 backups/
+sql_backup/
 
 # Archivos del sistema
 .DS_Store
@@ -53,3 +67,6 @@ composer.lock
 
 # Archivos de sesion (si los usas a nivel de sistema de archivos)
 /sessions
+
+# Configuracion remota (NO SUBIR A GIT)
+config/config.remoto.php
