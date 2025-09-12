@@ -4,7 +4,7 @@ require_once 'config/config.php';
 iniciarSesionSegura();
 
 if (isset($_SESSION['id_usuario'])) {
-    header("Location: menu_principal.php");
+    header("Location: paneldecontrol.php");
     exit;
 }
 
@@ -37,12 +37,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['rol_usuario'] = $user['rol'];
                 $_SESSION['hora_inicio_sesion'] = time();
                 
+                registrar_auditoria('INICIO_SESION', null, null, 'Inicio de sesión exitoso');
+
                 // Actualizar último acceso
                 $sql = "UPDATE usuarios SET ultimo_acceso = NOW() WHERE id = ?";
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute([$user['id']]);
                 
-                header("Location: menu_principal.php");
+                header("Location: paneldecontrol.php");
                 exit;
             } else {
                 $error = 'Usuario o contraseña incorrectos.';
