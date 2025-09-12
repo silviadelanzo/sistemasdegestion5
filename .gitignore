@@ -34,6 +34,7 @@ testdb.php
 scripts/
 images/*.png
 sistemadgestion5_docs/
+display_proveedores.php
 
 
 # Uploads y archivos generados
