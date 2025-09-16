@@ -42,19 +42,18 @@ foreach ($carpeta in $carpetasEsenciales) {
 
 # ARCHIVOS DE GESTION
 Write-Host "  Formularios y gestion..." -ForegroundColor Green  
-$gestionFiles = @(
-    "categoria_form.php",
-    "lugar_form.php", 
-    "usuario_form.php",
-    "proveedor_form.php",
-    "proveedores.php",
+# Archivos de gestión principales (páginas de listado, etc.)
+$gestionRootFiles = @(
+    "proveedores.php", # Contiene el modal de proveedor
     "usuarios.php",
-    "reportes.php"
+    "reportes.php" 
 )
 
-foreach ($file in $gestionFiles) {
+foreach ($file in $gestionRootFiles) {
     if (Test-Path $file) {
         Copy-Item -Path $file -Destination $tempDir -Force
+    } else {
+        Write-Host "    Advertencia: No se encontró el archivo de gestión '$file'" -ForegroundColor Yellow
     }
 }
 

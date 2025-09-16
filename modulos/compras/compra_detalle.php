@@ -6,38 +6,36 @@ requireLogin('../../login.php');
 $pdo = conectarDB();
 $id = $_GET['id'] ?? 0;
 
-if ($id <= 0) {
-    header("Location: compras.php");
+if ($id == 0) {
+    // If no ID, redirect to the list
+    header('Location: compras.php');
     exit;
 }
 
-// Obtener datos de la compra
-$stmt = $pdo->prepare("
-    SELECT c.*, p.razon_social as proveedor_nombre 
-    FROM compras c 
-    LEFT JOIN proveedores p ON c.proveedor_id = p.id 
-    WHERE c.id = ?
-");
+$compra = null;
+$detalles = [];
+
+// Cargar datos de la orden de compra existente
+$stmt = $pdo->prepare("SELECT oc.*, p.razon_social, d.nombre_deposito, e.nombre_estado 
+                       FROM oc_ordenes oc
+                       LEFT JOIN proveedores p ON oc.proveedor_id = p.id
+                       LEFT JOIN oc_depositos d ON oc.deposito_id = d.id_deposito
+                       LEFT JOIN oc_estados e ON oc.estado_id = e.id_estado
+                       WHERE oc.id_orden = ?");
 $stmt->execute([$id]);
 $compra = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$compra) {
-    header("Location: compras.php");
+    // If order not found, redirect
+    $_SESSION['error_message'] = "Orden de compra no encontrada.";
+    header('Location: compras.php');
     exit;
 }
 
-// Obtener detalles de la compra (productos)
-$stmt_detalles = $pdo->prepare("
-    SELECT 
-        cd.cantidad_pedida, 
-        cd.cantidad_recibida, 
-        cd.precio_unitario, 
-        p.nombre as producto_nombre,
-        p.codigo as producto_codigo
-    FROM compra_detalles cd
-    LEFT JOIN productos p ON cd.producto_id = p.id
-    WHERE cd.compra_id = ?
-");
+$stmt_detalles = $pdo->prepare("SELECT cd.*, p.nombre, p.codigo, p.stock, p.stock_minimo, p.codigo_barra 
+                               FROM oc_detalle cd 
+                               JOIN productos p ON cd.producto_id = p.id 
+                               WHERE cd.id_orden = ?");
 $stmt_detalles->execute([$id]);
 $detalles = $stmt_detalles->fetchAll(PDO::FETCH_ASSOC);
 
@@ -46,150 +44,140 @@ $detalles = $stmt_detalles->fetchAll(PDO::FETCH_ASSOC);
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Detalle de Compra #<?php echo htmlspecialchars($compra['codigo'] ?? ''); ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Detalle de Orden de Compra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .form-container { max-width: 900px; margin: 30px auto; background: #fff; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,.08); overflow: hidden; }
+        .form-header { background: #17a2b8; color: #fff; padding: 16px 20px; } /* Changed color to info */
+        .form-control[readonly], .form-select[disabled] {
+            background-color: #e9ecef;
+            opacity: 1;
+        }
+        #form-compra .table > :not(caption) > * > * {
+            padding: .4rem .4rem;
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+        #form-compra .table th { text-align: center; }
+        #form-compra .table td:nth-child(3),
+        #form-compra .table td:nth-child(4),
+        #form-compra .table td:nth-child(5),
+        #form-compra .table td:nth-child(6),
+        #form-compra .table td:nth-child(7) {
+            text-align: right;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+<?php include "../../config/navbar_code.php"; ?>
+    <div class="container form-container">
         <div class="row">
             <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1><i class="fas fa-eye"></i> Detalle de Compra #<?php echo htmlspecialchars($compra['codigo'] ?? ''); ?></h1>
-                    <div>
-                        <a href="compra_form.php?id=<?php echo htmlspecialchars($compra['id'] ?? ''); ?>" class="btn btn-warning">
-                            <i class="fas fa-edit"></i> Editar
-                        </a>
-                        <a href="compras.php" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Volver
-                        </a>
-                    </div>
+                <div class="form-header">
+                    <h4 class="mb-0"><i class="fas fa-eye"></i> Detalle de Orden de Compra</h4>
                 </div>
                 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5><i class="fas fa-info-circle"></i> Información General</h5>
-                            </div>
-                            <div class="card-body">
-                                <table class="table table-borderless">
-                                    <tr>
-                                        <td><strong>Código:</strong></td>
-                                        <td><?php echo htmlspecialchars($compra['codigo'] ?? ''); ?></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Proveedor:</strong></td>
-                                        <td><?php echo htmlspecialchars($compra['proveedor_nombre'] ?? ''); ?></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Fecha:</strong></td>
-                                        <td><?php echo htmlspecialchars(date('d/m/Y', strtotime($compra['fecha_compra']))); ?></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Estado:</strong></td>
-                                        <td>
-                                            <span class="badge bg-<?php 
-                                                echo match($compra['estado']) {
-                                                    'pendiente' => 'warning',
-                                                    'confirmada' => 'info',
-                                                    'parcial' => 'primary',
-                                                    'recibida' => 'success',
-                                                    'cancelada' => 'danger',
-                                                    default => 'secondary'
-                                                };
-                                            ?>">
-                                                <?php echo htmlspecialchars(ucfirst($compra['estado'] ?? '')); ?>
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Total:</strong></td>
-                                        <td><strong>$<?php echo htmlspecialchars(number_format($compra['total'], 2)); ?></strong></td>
-                                    </tr>
-                                </table>
+                <form id="form-compra">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5><i class="fas fa-info-circle"></i> Información General</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Número de Orden</label>
+                                    <input type="text" class="form-control" value="<?= htmlspecialchars($compra['numero_orden'] ?? '') ?>" readonly>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Proveedor</label>
+                                    <input type="text" class="form-control" value="<?= htmlspecialchars($compra['razon_social'] ?? '') ?>" readonly>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Fecha de O.Compra</label>
+                                    <input type="date" class="form-control" value="<?= htmlspecialchars($compra['fecha_orden'] ?? '') ?>" readonly>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Condición de Pago</label>
+                                    <input type="text" class="form-control" value="<?= htmlspecialchars($compra['condicion_pago'] ?? '') ?>" readonly>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Estado</label>
+                                    <input type="text" class="form-control" value="<?= htmlspecialchars($compra['nombre_estado'] ?? '') ?>" readonly style="font-weight: bold;">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Depósito de Entrega</label>
+                                    <input type="text" class="form-control" value="<?= htmlspecialchars($compra['nombre_deposito'] ?? 'N/A') ?>" readonly>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label">Observaciones</label>
+                                    <textarea class="form-control" rows="2" readonly><?= htmlspecialchars($compra['observaciones'] ?? '') ?></textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5><i class="fas fa-calendar"></i> Fechas</h5>
-                            </div>
-                            <div class="card-body">
-                                <table class="table table-borderless">
-                                    <tr>
-                                        <td><strong>Entrega Estimada:</strong></td>
-                                        <td><?php echo htmlspecialchars($compra['fecha_entrega_estimada'] ? date('d/m/Y', strtotime($compra['fecha_entrega_estimada'])) : 'No definida'); ?></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Entrega Real:</strong></td>
-                                        <td><?php echo htmlspecialchars($compra['fecha_entrega_real'] ? date('d/m/Y', strtotime($compra['fecha_entrega_real'])) : 'Pendiente'); ?></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Creación:</strong></td>
-                                        <td><?php echo htmlspecialchars(date('d/m/Y H:i', strtotime($compra['fecha_creacion']))); ?></td>
-                                    </tr>
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5><i class="fas fa-box"></i> Productos</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>CB</th>
+                                            <th>Producto</th>
+                                            <th>Precio Neto</th>
+                                            <th>Cantidad</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="productos-tbody">
+                                        <?php 
+                                        $total_general = 0;
+                                        foreach ($detalles as $detalle): 
+                                            $subtotal = (int)$detalle['cantidad'] * $detalle['precio_unitario'];
+                                            $total_general += $subtotal;
+                                        ?>
+                                            <tr>
+                                                <td><?= htmlspecialchars($detalle['codigo_barra'] ?? 'N/A') ?></td>
+                                                <td><?= htmlspecialchars($detalle['nombre']) ?></td>
+                                                <td style="text-align: right;">$<?= number_format($detalle['precio_unitario'], 2) ?></td>
+                                                <td style="text-align: right;"><?= (int)$detalle['cantidad'] ?></td>
+                                                <td style="text-align: right;">$<?= number_format($subtotal, 2) ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
-                    </div>
-                </div>
-                
-                <div class="card mt-3">
-                    <div class="card-header">
-                        <h5><i class="fas fa-box"></i> Productos</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Producto</th>
-                                        <th>Cantidad Pedida</th>
-                                        <th>Cantidad Recibida</th>
-                                        <th>Precio Unitario</th>
-                                        <th>Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if (empty($detalles)): ?>
-                                        <tr>
-                                            <td colspan="5" class="text-center">No hay productos en esta compra.</td>
-                                        </tr>
-                                    <?php else: ?>
-                                        <?php foreach ($detalles as $detalle): ?>
-                                            <tr>
-                                                <td>
-                                                    <?= htmlspecialchars($detalle['producto_nombre']) ?><br>
-                                                    <small class="text-muted"><?= htmlspecialchars($detalle['producto_codigo']) ?></small>
-                                                </td>
-                                                <td><?= htmlspecialchars($detalle['cantidad_pedida']) ?></td>
-                                                <td><?= htmlspecialchars($detalle['cantidad_recibida'] ?? '0') ?></td>
-                                                <td>$<?= htmlspecialchars(number_format($detalle['precio_unitario'], 2)) ?></td>
-                                                <td>$<?= htmlspecialchars(number_format($detalle['cantidad_pedida'] * $detalle['precio_unitario'], 2)) ?></td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
+                        <div class="card-footer">
+                            <div class="row justify-content-end">
+                                <div class="col-md-5">
+                                    <div class="d-flex justify-content-between h5">
+                                        <strong>Total:</strong>
+                                        <span>$<?= number_format($total_general, 2) ?></span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <?php if ($compra['observaciones']): ?>
-                <div class="card mt-3">
-                    <div class="card-header">
-                        <h5><i class="fas fa-comment"></i> Observaciones</h5>
+                    
+                    <div class="mt-3">
+                        <a href="compras.php" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver al Listado
+                        </a>
+                        <a href="compra_imprimir.php?id=<?= $id ?>" class="btn btn-primary" target="_blank">
+                            <i class="fas fa-print"></i> Imprimir
+                        </a>
                     </div>
-                    <div class="card-body">
-                        <p><?php echo nl2br(htmlspecialchars($compra['observaciones'] ?? '')); ?></p>
-                    </div>
-                </div>
-                <?php endif; ?>
+                </form>
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

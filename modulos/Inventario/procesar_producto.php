@@ -18,6 +18,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 try {
     $pdo->beginTransaction();
     
+    // Recoger y validar cuenta_id de la sesión
+    if (!isset($_SESSION['cuenta_id']) || empty($_SESSION['cuenta_id'])) {
+        throw new Exception("La sesión no tiene una cuenta asociada. Por favor, inicie sesión de nuevo.");
+    }
+    $cuenta_id = (int)$_SESSION['cuenta_id'];
+    if ($cuenta_id <= 0) {
+        throw new Exception("ID de cuenta inválido en la sesión.");
+    }
+
     // Recoger datos del formulario
     $es_edicion = !empty($_POST['id']);
     $producto_id = $es_edicion ? intval($_POST['id']) : null;
@@ -70,9 +79,9 @@ try {
         throw new Exception('El precio de compra debe ser mayor a 0');
     }
     
-    // Verificar código único (excepto en edición del mismo producto)
-    $sql_check = "SELECT id FROM productos WHERE codigo_barras = ?";
-    $params_check = [$codigo_barras];
+    // Verificar código único dentro de la misma cuenta
+    $sql_check = "SELECT id FROM productos WHERE codigo_barras = ? AND cuenta_id = ?";
+    $params_check = [$codigo_barras, $cuenta_id];
     
     if ($es_edicion) {
         $sql_check .= " AND id != ?";
@@ -83,7 +92,7 @@ try {
     $stmt_check->execute($params_check);
     
     if ($stmt_check->fetch()) {
-        throw new Exception('El código de barras ya existe en otro producto');
+        throw new Exception('El código de barras ya existe en otro producto de esta cuenta.');
     }
     
     // Manejo de imagen
@@ -91,7 +100,6 @@ try {
     if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
         $upload_dir = '../../assets/img/productos/';
         
-        // Crear directorio si no existe
         if (!is_dir($upload_dir)) {
             mkdir($upload_dir, 0755, true);
         }
@@ -99,13 +107,11 @@ try {
         $file_info = pathinfo($_FILES['imagen']['name']);
         $extension = strtolower($file_info['extension']);
         
-        // Validar extensión
         $extensiones_permitidas = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         if (!in_array($extension, $extensiones_permitidas)) {
             throw new Exception('Formato de imagen no permitido. Use: ' . implode(', ', $extensiones_permitidas));
         }
         
-        // Generar nombre único
         $nombre_archivo = 'producto_' . $codigo_barras . '_' . time() . '.' . $extension;
         $ruta_completa = $upload_dir . $nombre_archivo;
         
@@ -140,13 +146,14 @@ try {
             $params[] = $imagen_url;
         }
         
-        $sql .= " WHERE id = ?";
+        $sql .= " WHERE id = ? AND cuenta_id = ?";
         $params[] = $producto_id;
+        $params[] = $cuenta_id;
         
     } else {
         // Crear nuevo producto
         $sql = "INSERT INTO productos (
-                codigo_barras, nombre, descripcion, categoria_id, lugar_id,
+                cuenta_id, codigo_barras, nombre, descripcion, categoria_id, lugar_id,
                 moneda_id, impuesto_id, redondeo_decimales, tipo_redondeo,
                 precio_compra, precio_minorista, precio_mayorista,
                 utilidad_minorista, utilidad_mayorista,
@@ -154,7 +161,7 @@ try {
                 usar_alerta_vencimiento, fecha_vencimiento, alerta_vencimiento_dias,
                 imagen_url, usuario_creacion, fecha_creacion, fecha_actualizacion
             ) VALUES (
-                ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?,
                 ?, ?, ?,
                 ?, ?,
@@ -164,7 +171,7 @@ try {
             )";
         
         $params = [
-            $codigo_barras, $nombre, $descripcion, $categoria_id, $lugar_id,
+            $cuenta_id, $codigo_barras, $nombre, $descripcion, $categoria_id, $lugar_id,
             $moneda_id, $impuesto_id, $redondeo_decimales, $tipo_redondeo,
             $precio_compra, $precio_minorista, $precio_mayorista,
             $utilidad_minorista, $utilidad_mayorista,
@@ -177,6 +184,10 @@ try {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     
+    if ($es_edicion && $stmt->rowCount() === 0) {
+        throw new Exception("No se pudo actualizar el producto. Verifique que el producto pertenezca a su cuenta.");
+    }
+
     // Obtener ID del producto (para nuevos productos)
     if (!$es_edicion) {
         $producto_id = $pdo->lastInsertId();
@@ -184,11 +195,12 @@ try {
     
     // Registrar en log de actividades
     $accion = $es_edicion ? 'actualizar_producto' : 'crear_producto';
-    $log_sql = "INSERT INTO logs_sistema (usuario_id, accion, tabla_afectada, registro_id, detalles, fecha) 
-                VALUES (?, ?, 'productos', ?, ?, NOW())";
+    $log_sql = "INSERT INTO logs_sistema (usuario_id, cuenta_id, accion, tabla_afectada, registro_id, detalles, fecha) 
+                VALUES (?, ?, ?, 'productos', ?, ?, NOW())";
     $log_stmt = $pdo->prepare($log_sql);
     $log_stmt->execute([
         $_SESSION['usuario_id'],
+        $cuenta_id,
         $accion,
         $producto_id,
         json_encode([

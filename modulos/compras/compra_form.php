@@ -132,7 +132,7 @@ $estados = $stmt_estados->fetchAll(PDO::FETCH_ASSOC);
                 </div>
                 
                 <form id="form-compra" action="gestionar_compra.php" method="POST">
-                    <input type="hidden" name="id" value="<?php echo $compra['id'] ?? ''; ?>">
+                    <input type="hidden" name="id" value="<?php echo $compra['id_orden'] ?? ''; ?>">
                     
                     <div class="card mb-3">
                         <div class="card-header">
@@ -243,8 +243,8 @@ $estados = $stmt_estados->fetchAll(PDO::FETCH_ASSOC);
                                                 <td><input type="number" class="form-control precio" name="productos[precio][]" value="<?= $detalle['precio_unitario'] ?>" step="0.01" readonly></td>
                                                 <td><input type="number" class="form-control" value="<?= $detalle['stock'] ?>" readonly></td>
                                                 <td><input type="number" class="form-control" value="<?= $detalle['stock_minimo'] ?>" readonly></td>
-                                                <td><input type="number" class="form-control cantidad" name="productos[cantidad][]" value="<?= $detalle['cantidad_pedida'] ?>" min="1"></td>
-                                                <td class="subtotal">$<?= number_format($detalle['cantidad_pedida'] * $detalle['precio_unitario'], 2) ?></td>
+                                                <td><input type="number" class="form-control cantidad" name="productos[cantidad][]" value="<?= (int)$detalle['cantidad'] ?>" min="1" step="1"></td>
+                                                <td class="subtotal">$<?= number_format((int)$detalle['cantidad'] * $detalle['precio_unitario'], 2) ?></td>
                                                 <td><button type="button" class="btn btn-danger btn-sm btn-remove">X</button></td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -298,6 +298,7 @@ $estados = $stmt_estados->fetchAll(PDO::FETCH_ASSOC);
                             <th>Categoría</th>
                             <th>Precio</th>
                             <th>Stock</th>
+                            <th>Tipo</th>
                             <th>Acción</th>
                         </tr>
                     </thead>
@@ -372,7 +373,7 @@ $estados = $stmt_estados->fetchAll(PDO::FETCH_ASSOC);
 
             // Mostrar guía si no hay término aún
             if (term.length === 0) {
-                 modalResultsTbody.innerHTML = '<tr><td colspan="6">Ingrese un término para buscar...</td></tr>';
+                 modalResultsTbody.innerHTML = '<tr><td colspan="7">Ingrese un término para buscar...</td></tr>';
             }
 
             fetch(`../../ajax/buscar_productos.php?term=${encodeURIComponent(term)}&proveedor_id=${encodeURIComponent(proveedor_id)}`)
@@ -390,17 +391,18 @@ $estados = $stmt_estados->fetchAll(PDO::FETCH_ASSOC);
                                 <td>${prod.categoria_nombre || 'N/A'}</td>
                                 <td>${prod.precio_compra || '0.00'}</td>
                                 <td>${prod.stock || '0'}</td>
+                                <td><strong>${prod.proveedor_tipo || 'A'}</strong></td>
                                 <td><button type="button" class="btn btn-success btn-sm select-product-btn" data-producto='${JSON.stringify(prod)}'>Seleccionar</button></td>
                             </tr>`;
                         });
                     } else {
-                        html = '<tr><td colspan="6">No se encontraron productos.</td></tr>';
+                        html = '<tr><td colspan="7">No se encontraron productos.</td></tr>';
                     }
                     modalResultsTbody.innerHTML = html;
                 })
                 .catch(err => {
                     console.error(err);
-                    modalResultsTbody.innerHTML = '<tr><td colspan="6" class="text-danger">Ocurrió un error al buscar. Intente nuevamente.</td></tr>';
+                    modalResultsTbody.innerHTML = '<tr><td colspan="7" class="text-danger">Ocurrió un error al buscar. Intente nuevamente.</td></tr>';
                 });
         }
 
@@ -435,7 +437,7 @@ $estados = $stmt_estados->fetchAll(PDO::FETCH_ASSOC);
 
         function agregarFilaProducto(producto) {
             const necesidad = (parseFloat(producto.stock_minimo) || 0) - (parseFloat(producto.stock) || 0);
-            const cantidad_a_comprar = necesidad > 0 ? necesidad : 1;
+            const cantidad_a_comprar = necesidad > 0 ? Math.ceil(necesidad) : 1;
 
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
@@ -448,7 +450,7 @@ $estados = $stmt_estados->fetchAll(PDO::FETCH_ASSOC);
                 <td><input type="number" class="form-control precio" name="productos[precio][]" value="${producto.precio_compra || '0.00'}" step="0.01" readonly></td>
                 <td><input type="number" class="form-control" value="${producto.stock || 0}" readonly></td>
                 <td><input type="number" class="form-control" value="${producto.stock_minimo || 0}" readonly></td>
-                <td><input type="number" class="form-control cantidad" name="productos[cantidad][]" value="${cantidad_a_comprar}" min="1"></td>
+                <td><input type="number" class="form-control cantidad" name="productos[cantidad][]" value="${cantidad_a_comprar}" min="1" step="1"></td>
                 <td class="subtotal">${(cantidad_a_comprar * (parseFloat(producto.precio_compra) || 0)).toFixed(2)}</td>
                 <td><button type="button" class="btn btn-danger btn-sm btn-remove">X</button></td>
             `;

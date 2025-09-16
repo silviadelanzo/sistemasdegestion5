@@ -30,14 +30,21 @@ if ($cliente_id <= 0) {
 
     if (!$cliente) {
         $error = "Cliente no encontrado o no está en papelera.";
+    } else {
+        // CHEQUEO DE SEGURIDAD MULTI-CUENTA
+        if (isset($_SESSION['cuenta_id']) && $cliente['cuenta_id'] != $_SESSION['cuenta_id']) {
+            error_log("ALERTA DE SEGURIDAD: Usuario ID {$_SESSION['id_usuario']} de cuenta ID {$_SESSION['cuenta_id']} intentó borrar al cliente ID {$cliente_id} de cuenta ID {$cliente['cuenta_id']}.");
+            $error = "Cliente no encontrado o no está en papelera."; // Error genérico
+            $cliente = null; // Anular el cliente para que no se muestre la confirmación
+        }
     }
 }
 
 // 2. Al confirmar (POST), eliminar definitivamente
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error && $cliente) {
     try {
-        $stmt = $pdo->prepare("DELETE FROM clientes WHERE id=?");
-        $stmt->execute([$cliente_id]);
+                $stmt = $pdo->prepare("DELETE FROM clientes WHERE id=? AND cuenta_id = ?");
+        $stmt->execute([$cliente_id, $_SESSION['cuenta_id']]);
         header("Location: papelera_clientes.php?msg=eliminado");
         exit;
     } catch (Exception $e) {

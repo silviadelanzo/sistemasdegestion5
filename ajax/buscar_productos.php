@@ -88,6 +88,11 @@ try {
         }
         $providerCond = '(' . implode(' OR ', $providerOr) . ')';
 
+        // Determinar si el proveedor principal está en la lista de columnas de la tabla pivote
+        $principalCol = 'proveedor_principal';
+        $hasPrincipalCol = in_array($principalCol, $providerCols, true);
+        $tipoProveedorSelect = $hasPrincipalCol ? "CASE WHEN pp.{$principalCol} = :proveedor_id THEN 'P' ELSE 'A' END" : "'A'";
+
         $sql = "
             SELECT
                 p.id,
@@ -99,13 +104,15 @@ try {
                 p.stock_minimo,
                 p.precio_compra, -- fallback
                 c.nombre AS categoria_nombre,
-                $ultimaCompraSelect
+                $ultimaCompraSelect,
+                {$tipoProveedorSelect} AS proveedor_tipo
             FROM productos p
             INNER JOIN {$pivotTable} pp ON pp.{$productCol} = p.id AND {$providerCond}
             LEFT JOIN categorias c ON c.id = p.categoria_id
             WHERE p.activo = 1
             $whereSearch
             ORDER BY
+                (CASE WHEN {$tipoProveedorSelect} = 'P' THEN 0 ELSE 1 END) ASC,
                 CASE
                     WHEN p.codigo_barra = :term_exact THEN 0
                     WHEN p.codigo = :term_exact THEN 1
@@ -128,7 +135,8 @@ try {
                 p.stock_minimo,
                 p.precio_compra, -- fallback
                 c.nombre AS categoria_nombre,
-                $ultimaCompraSelect
+                $ultimaCompraSelect,
+                'P' AS proveedor_tipo
             FROM productos p
             LEFT JOIN categorias c ON c.id = p.categoria_id
             WHERE p.activo = 1 AND p.proveedor_principal_id = :proveedor_id
@@ -161,6 +169,7 @@ try {
             'categoria_nombre' => $r['categoria_nombre'] ?? null,
             'precio_compra' => number_format($precio, 2, '.', ''),
             'descripcion' => $r['descripcion'] ?? null,
+            'proveedor_tipo' => $r['proveedor_tipo'] ?? 'A',
         ];
     }, $rows);
 

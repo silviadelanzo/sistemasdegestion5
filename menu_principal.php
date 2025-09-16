@@ -32,7 +32,11 @@ try {
     $pdo = conectarDB();
 
     // Estadísticas básicas de productos
-    $stats_productos = obtenerEstadisticasInventario($pdo);
+    if (!isset($_SESSION['cuenta_id'])) {
+        throw new Exception("ID de cuenta no encontrado en la sesión.");
+    }
+    $cuenta_id = (int)$_SESSION['cuenta_id'];
+    $stats_productos = obtenerEstadisticasInventario($pdo, $cuenta_id);
 
     // Estadísticas adicionales con verificación de tablas
     $total_clientes = 0;

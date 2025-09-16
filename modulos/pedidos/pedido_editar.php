@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $pedido_id) {
             $qty = (int)($cantidades[$index] ?? 0);
             $price = (float)($precios_unitarios[$index] ?? 0);
             if ($prod_id && $qty > 0) {
-                $item_subtotal = $qty * $price; // sin IVA
+                $item_subtotal = $qty * $price;
                 $stmt_insert_detalle->execute([$pedido_id, $prod_id, $qty, $price, $item_subtotal]);
             }
         }
@@ -141,7 +141,7 @@ if ($pedido_id) {
 // Listas
 try {
     $pdo = conectarDB();
-    $clientes_list = $pdo->query("SELECT id, CONCAT(nombre, ' ', apellido, ' (', empresa, ')') as full_name FROM clientes ORDER BY full_name")->fetchAll(PDO::FETCH_ASSOC);
+    $clientes_list = $pdo->query("SELECT id, CONCAT(nombre, ' ', apellido, IF(empresa IS NOT NULL AND empresa <> '', CONCAT(' (', empresa, ')'), '')) as full_name FROM clientes ORDER BY full_name")->fetchAll(PDO::FETCH_ASSOC);
     $productos_list = $pdo->query("SELECT p.id, CONCAT(p.codigo, ' - ', p.nombre) as full_name, p.precio_venta, i.porcentaje as tax_rate FROM productos p LEFT JOIN impuestos i ON p.impuesto_id = i.id ORDER BY full_name")->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $message = "Error al cargar listas: " . $e->getMessage();
@@ -212,7 +212,7 @@ try {
                                         <?php foreach ($clientes_list as $cliente_item): ?>
                                             <option value="<?= htmlspecialchars($cliente_item['id']) ?>"
                                                 <?= ($cliente_item['id'] == $pedido['cliente_id']) ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($cliente_item['full_name']) ?>
+                                                <?= htmlspecialchars($cliente_item['full_name'] ?? '') ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -275,11 +275,11 @@ try {
                                                     <select class="form-select form-select-sm product-select" name="producto_id[]" required>
                                                         <option value="">Seleccione</option>
                                                         <?php foreach ($productos_list as $prod_item): ?>
-                                                            <option value="<?= htmlspecialchars($prod_item['id']) ?>"
-                                                                data-precio="<?= htmlspecialchars($prod_item['precio_venta']) ?>"
-                                                                data-tax-rate="<?= htmlspecialchars($prod_item['tax_rate']) ?>"
+                                                            <option value="<?= htmlspecialchars($prod_item['id'] ?? '') ?>"
+                                                                data-precio="<?= htmlspecialchars($prod_item['precio_venta'] ?? '0') ?>"
+                                                                data-tax-rate="<?= htmlspecialchars($prod_item['tax_rate'] ?? '0') ?>"
                                                                 <?= ($prod_item['id'] == $detalle['producto_id']) ? 'selected' : '' ?>>
-                                                                <?= htmlspecialchars($prod_item['full_name']) ?>
+                                                                <?= htmlspecialchars($prod_item['full_name'] ?? 'Producto sin nombre') ?>
                                                             </option>
                                                         <?php endforeach; ?>
                                                     </select>
@@ -383,9 +383,9 @@ try {
             });
 
             const totalPedido = subtotalPedido + impuestosPedido;
-            document.getElementById('subtotal-pedido').textContent = fmt(subtotalPedido);
-            document.getElementById('impuestos-pedido').textContent = fmt(impuestosPedido);
-            document.getElementById('total-pedido').textContent = fmt(totalPedido);
+            document.getElementById('subtotal-pedido').textContent = "$" + fmt(subtotalPedido);
+            document.getElementById('impuestos-pedido').textContent = "$" + fmt(impuestosPedido);
+            document.getElementById('total-pedido').textContent = "$" + fmt(totalPedido);
         }
 
         function attachItemListeners(item) {

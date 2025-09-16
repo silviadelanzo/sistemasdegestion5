@@ -11,6 +11,11 @@ $errores = [];
 $mensaje_exito = '';
 $es_edicion = false;
 
+$cuenta_id_actual = isset($_SESSION['cuenta_id']) ? (int)$_SESSION['cuenta_id'] : 0;
+if ($cuenta_id_actual <= 0) {
+    $errores[] = 'Sesión inválida: no se encontró cuenta asociada. Vuelva a iniciar sesión.';
+}
+
 $producto_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $step = isset($_GET['step']) ? $_GET['step'] : 'basico';
 
@@ -70,13 +75,14 @@ if ($producto_id > 0) {
 // Si es ALTA, generar código correlativo y valores por defecto
 if (!$es_edicion) {
     try {
-    $stmt = $pdo->query("SELECT MAX(CAST(SUBSTRING(codigo, 6) AS UNSIGNED)) as max_correlativo FROM productos WHERE codigo LIKE 'PROD-%'");
-    $max_correlativo = $stmt->fetchColumn() ?? 0;
-    $siguiente_correlativo = $max_correlativo + 1;
-    $codigo = 'PROD-' . str_pad($siguiente_correlativo, 7, '0', STR_PAD_LEFT);
+        $stmt = $pdo->prepare("SELECT MAX(CAST(SUBSTRING(codigo, 6) AS UNSIGNED)) as max_correlativo FROM productos WHERE codigo LIKE 'PROD-%' AND cuenta_id = ?");
+        $stmt->execute([$cuenta_id_actual]);
+        $max_correlativo = $stmt->fetchColumn() ?? 0;
+        $siguiente_correlativo = $max_correlativo + 1;
+        $codigo = 'PROD-' . str_pad($siguiente_correlativo, 7, '0', STR_PAD_LEFT);
     } catch (PDOException $e) {
-    $errores[] = 'No se pudo generar el código: ' . $e->getMessage();
-    $codigo = 'PROD-ERROR';
+        $errores[] = 'No se pudo generar el código correlativo: ' . $e->getMessage();
+        $codigo = 'PROD-ERROR';
     }
     $codigo_barra = $nombre = $descripcion = '';
     $categoria_id = $lugar_id = '';
@@ -128,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validaciones mínimas
     if ($nombre === '') $errores[] = 'El nombre es obligatorio.';
     if ($codigo_barra === '') $errores[] = 'El código de barras es obligatorio.';
-    if ($precio_compra <= 0) $errores[] = 'El precio de compra debe ser mayor a 0.';
+    if ($precio_compra <= 0) $errores[] = 'El precio de compra debe ser un número positivo.';
 
     if (empty($categoria_id)) {
         $errores[] = 'Debes seleccionar una categoría.';
@@ -181,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     stock=?, stock_minimo=?, stock_maximo=?,
     usar_control_stock=?, usar_alerta_vencimiento=?, fecha_vencimiento=?, dias_alerta_vencimiento=?,
     moneda_id=?, impuesto_id=?
-    WHERE id=?";
+    WHERE id=? AND cuenta_id=?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
     $codigo_barra, $nombre, $descripcion, $categoria_id, $lugar_id, $unidad_medida,
@@ -192,20 +198,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usar_alerta_vencimiento ? $fecha_vencimiento : null,
     $usar_alerta_vencimiento ? $dias_alerta_vencimiento : null,
     $moneda_id, $impuesto_id,
-    $producto_id
+    $producto_id, $cuenta_id_actual
     ]);
     registrar_auditoria('MODIFICACION_PRODUCTO', 'productos', $producto_id, "Producto modificado: " . $nombre);
     } else {
     $sql = "INSERT INTO productos
-    (codigo, codigo_barra, nombre, descripcion, categoria_id, lugar_id, unidad_medida,
+    (cuenta_id, codigo, codigo_barra, nombre, descripcion, categoria_id, lugar_id, unidad_medida,
     precio_compra, utilidad_minorista, utilidad_mayorista,
     precio_minorista, precio_mayorista, precio_venta,
     stock, stock_minimo, stock_maximo, usar_control_stock, usar_alerta_vencimiento,
     fecha_vencimiento, dias_alerta_vencimiento, moneda_id, impuesto_id, publicar_web)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
-    $codigo, $codigo_barra, $nombre, $descripcion, $categoria_id, $lugar_id, $unidad_medida,
+    $cuenta_id_actual, $codigo, $codigo_barra, $nombre, $descripcion, $categoria_id, $lugar_id, $unidad_medida,
     $precio_compra, $utilidad_minorista, $utilidad_mayorista,
     $precio_minorista, $precio_mayorista, $precio_venta,
     $stock, $stock_minimo, $stock_maximo, $usar_control_stock,
@@ -300,8 +306,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     }
 
-    $upd = $pdo->prepare("UPDATE productos SET publicar_web=? WHERE id=?");
-    $upd->execute([$publicar_web, $producto_id]);
+    $upd = $pdo->prepare("UPDATE productos SET publicar_web=? WHERE id=? AND cuenta_id=?");
+    $upd->execute([$publicar_web, $producto_id, $cuenta_id_actual]);
 
     $stmt_prod_nombre = $pdo->prepare("SELECT nombre FROM productos WHERE id = ?");
     $stmt_prod_nombre->execute([$producto_id]);
@@ -339,6 +345,10 @@ try {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+    /* --- INICIO MODIFICACIONES -- */
+    .container { max-width: 900px; }
+    /* --- FIN MODIFICACIONES --- */
+
     /* Barra superior */
     .hero-blue {
     background: linear-gradient(90deg, #0d6efd, #0a58ca);
@@ -377,7 +387,11 @@ try {
     /* Tablas compactas y responsive */
     .table-responsive { border: 1px solid #e9ecef; border-radius: 6px; }
     .table > :not(caption) > * > * { padding: .35rem .5rem; }
-    .form-control, .form-select { padding: .35rem .5rem; font-size: .95rem; }
+    .form-control, .form-select { 
+        padding: .35rem .5rem; 
+        font-size: .95rem; 
+        background-color: #e7f5fe !important;
+    }
     textarea.form-control { min-height: 42px; }
 
     /* Checkboxes azules */
@@ -498,7 +512,8 @@ try {
     <td><label class="form-label">Precio de Compra (Costo) *</label></td>
     <td>
     <input type="number" class="form-control" id="precio_compra" name="precio_compra"
-    step="0.01" min="0" required value="<?php echo htmlspecialchars($precio_compra ?? 0); ?>">
+    step="0.01" min="0.01" required value="<?php echo htmlspecialchars($precio_compra ?? 1); ?>">
+    <div class="invalid-feedback">El precio debe ser un número positivo.</div>
     </td>
     <td><label class="form-label">% Utilidad Minorista</label></td>
     <td>
@@ -694,6 +709,23 @@ try {
   });
 
   window.addEventListener('DOMContentLoaded', calc);
+})();
+
+// Validación en vivo para el precio de compra
+(function() {
+    const precioCompraInput = document.getElementById('precio_compra');
+    if (precioCompraInput) {
+        const validate = function() {
+            const value = parseFloat(this.value);
+            if (isNaN(value) || value <= 0) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        };
+        precioCompraInput.addEventListener('blur', validate);
+        precioCompraInput.addEventListener('input', validate); // Validar mientras se escribe
+    }
 })();
 </script>
 </body>

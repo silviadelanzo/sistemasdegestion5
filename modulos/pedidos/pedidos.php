@@ -5,6 +5,8 @@ iniciarSesionSegura();
 requireLogin('../../login.php');
 header('Content-Type: text/html; charset=UTF-8');
 
+$cuenta_id_actual = $_SESSION['cuenta_id'];
+
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $per_page = 20;
 $offset = ($page - 1) * $per_page;
@@ -16,8 +18,6 @@ $filtro_fecha    = isset($_GET['fecha'])    ? trim($_GET['fecha'])    : '';
 $orden_campo     = isset($_GET['orden']) ? $_GET['orden'] : 'fecha_pedido';
 $orden_direccion = (isset($_GET['dir']) && $_GET['dir'] === 'asc') ? 'ASC' : 'DESC';
 
-/* Campos permitidos para ordenar.
-   Nota: “total_con_impuesto” es el alias calculado al vuelo. */
 $campos_permitidos = ['codigo', 'cliente_nombre', 'fecha_pedido', 'estado', 'total_con_impuesto'];
 if (!in_array($orden_campo, $campos_permitidos)) {
     $orden_campo = 'fecha_pedido';
@@ -27,25 +27,31 @@ try {
     $pdo = conectarDB();
     $pdo->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
 
-    // Tarjetas (valor total SIEMPRE con impuestos por producto)
-    $valor_total_sql = "
-        SELECT COALESCE(SUM(
-            (SELECT COALESCE(SUM(pd.cantidad * pd.precio_unitario * (1 + COALESCE(i.porcentaje,0)/100.0)),0)
-             FROM pedido_detalles pd
-             LEFT JOIN productos pr ON pr.id = pd.producto_id
-             LEFT JOIN impuestos i  ON i.id = pr.impuesto_id
-             WHERE pd.pedido_id = p.id)
-        ),0)
+    // Tarjetas (SECURED y Refactorizado)
+    $stats_sql = "
+        SELECT
+            COUNT(DISTINCT p.id) as total_pedidos,
+            COUNT(DISTINCT p.cliente_id) as total_clientes,
+            COALESCE(SUM(pd.cantidad), 0) as total_articulos,
+            COALESCE(SUM(pd.cantidad * pd.precio_unitario * (1 + COALESCE(i.porcentaje, 0) / 100.0)), 0) as valor_total
         FROM pedidos p
+        LEFT JOIN pedido_detalles pd ON p.id = pd.pedido_id
+        LEFT JOIN productos pr ON pd.producto_id = pr.id
+        LEFT JOIN impuestos i ON pr.impuesto_id = i.id
+        WHERE p.cuenta_id = ?
     ";
-    $valor_total     = (float)$pdo->query($valor_total_sql)->fetchColumn();
-    $total_pedidos   = (int)$pdo->query("SELECT COUNT(*) FROM pedidos")->fetchColumn();
-    $total_clientes  = (int)$pdo->query("SELECT COUNT(DISTINCT cliente_id) FROM pedidos")->fetchColumn();
-    $total_articulos = (int)$pdo->query("SELECT COALESCE(SUM(cantidad),0) FROM pedido_detalles")->fetchColumn();
+    $stmt_stats = $pdo->prepare($stats_sql);
+    $stmt_stats->execute([$cuenta_id_actual]);
+    $stats = $stmt_stats->fetch(PDO::FETCH_ASSOC);
 
-    // Filtros
-    $where = [];
-    $params = [];
+    $total_pedidos   = (int)($stats['total_pedidos'] ?? 0);
+    $total_clientes  = (int)($stats['total_clientes'] ?? 0);
+    $total_articulos = (int)($stats['total_articulos'] ?? 0);
+    $valor_total     = (float)($stats['valor_total'] ?? 0.0);
+
+    // Filtros (SECURED)
+    $where = ["p.cuenta_id = ?"];
+    $params = [$cuenta_id_actual];
     if ($filtro_busqueda !== '') {
         $where[] = "(p.codigo LIKE ? OR c.nombre LIKE ? OR c.apellido LIKE ? OR CONCAT(c.nombre,' ',c.apellido) LIKE ?)";
         $b = "%{$filtro_busqueda}%";
@@ -59,15 +65,13 @@ try {
         $where[] = "DATE(p.fecha_pedido) = ?";
         $params[] = $filtro_fecha;
     }
-    $where_clause = $where ? implode(' AND ', $where) : '1';
+    $where_clause = implode(' AND ', $where);
 
-    // Campo de orden
-    // cliente_nombre y total_con_impuesto son alias del SELECT
     $orden_sql = ($orden_campo === 'cliente_nombre' || $orden_campo === 'total_con_impuesto')
         ? $orden_campo
         : ('p.' . $orden_campo);
 
-    // Listado: calcular total_con_impuesto por pedido
+    // Listado (SECURED via $where_clause)
     $sql = "
         SELECT
             p.*,
@@ -124,18 +128,19 @@ $pageTitle = "Gestión de Pedidos - ".SISTEMA_NOMBRE;
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 <style>
   body{background:#f8f9fa}
-  .main-container{max-width:1200px;margin:0 auto}
+  .main-container{max-width:900px;margin:0 auto}
   .table-container{background:#fff;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.08);margin-top:30px}
+  .table{font-size: 0.85rem;}
   .table th,.table td{vertical-align:middle}
   .btn-action{padding:4px 8px;margin:0 1px;border-radius:5px;font-size:.85rem}
   .search-section{background:#fff;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.08);padding:15px 20px;margin-top:20px}
-  .info-cards{display:flex;gap:20px;margin:30px 0 10px}
-  .info-card{flex:1;display:flex;align-items:center;padding:20px;border-radius:12px;color:#fff;font-weight:600;font-size:1.2rem;box-shadow:0 4px 16px rgba(0,0,0,.05);min-width:200px}
+  .info-cards{display:flex;gap:10px;margin:20px 0 10px}
+  .info-card{flex:1;display:flex;align-items:center;padding: 0.6rem 0.8rem;border-radius:12px;color:#fff;font-weight:600;font-size:0.9rem;box-shadow:0 4px 16px rgba(0,0,0,.05);min-width:auto}
   .ic-purple{background:linear-gradient(90deg,#6a11cb 0%,#2575fc 100%)}
   .ic-pink{background:linear-gradient(90deg,#ff758c 0%,#ff7eb3 100%)}
   .ic-cyan{background:linear-gradient(90deg,#43e97b 0%,#38f9d7 100%)}
   .ic-green{background:linear-gradient(90deg,#11998e 0%,#38ef7d 100%)}
-  .info-card .icon{font-size:2.3rem;margin-left:auto;opacity:.7}
+  .info-card .icon{font-size:1.6rem;margin-left:auto;opacity:.7}
   .pagination-container{background:#fff;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.08);margin-top:30px;padding:15px 0}
   /* Números alineados: */
   .num{text-align:right;font-variant-numeric:tabular-nums}
@@ -166,31 +171,33 @@ $pageTitle = "Gestión de Pedidos - ".SISTEMA_NOMBRE;
   </div>
 
   <div class="search-section">
-    <form method="GET" class="row g-2 align-items-end">
-      <div class="col-md-4">
-        <label class="form-label fw-bold">Buscar</label>
-        <input type="text" class="form-control" name="busqueda" placeholder="Código, cliente..." value="<?= htmlspecialchars($filtro_busqueda) ?>">
-      </div>
-      <div class="col-md-2">
-        <label class="form-label fw-bold">Estado</label>
-        <select class="form-select" name="estado">
-          <option value="">Todos</option>
-          <?php foreach ($estados as $estado): ?>
-            <option value="<?= htmlspecialchars($estado) ?>" <?= $filtro_estado===$estado?'selected':'' ?>><?= ucfirst($estado) ?></option>
-          <?php endforeach; ?>
-        </select>
-      </div>
-      <div class="col-md-2">
-        <label class="form-label fw-bold">Fecha Pedido</label>
-        <input type="date" class="form-control" name="fecha" value="<?= htmlspecialchars($filtro_fecha) ?>">
-      </div>
-      <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-1"></i>Filtrar</button>
-      </div>
-      <div class="col-md-2 text-end">
-        <a href="pedido_form.php" class="btn btn-success w-100"><i class="bi bi-plus-circle me-1"></i>Nuevo Pedido</a>
-      </div>
+    <form method="GET" class="row g-2 align-items-center">
+        <div class="col-md-4">
+            <label class="visually-hidden">Buscar</label>
+            <input type="text" class="form-control" name="busqueda" placeholder="Código, cliente..." value="<?= htmlspecialchars($filtro_busqueda) ?>">
+        </div>
+        <div class="col-md-3">
+            <label class="visually-hidden">Estado</label>
+            <select class="form-select" name="estado">
+                <option value="">Todos los estados</option>
+                <?php foreach ($estados as $estado): ?>
+                <option value="<?= htmlspecialchars($estado) ?>" <?= $filtro_estado===$estado?'selected':'' ?>><?= ucfirst($estado) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="visually-hidden">Fecha Pedido</label>
+            <input type="date" class="form-control" name="fecha" value="<?= htmlspecialchars($filtro_fecha) ?>">
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>Filtrar</button>
+        </div>
     </form>
+    <div class="row mt-3">
+        <div class="col-12 text-center">
+            <a href="pedido_form.php" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>Nuevo Pedido</a>
+        </div>
+    </div>
   </div>
 
   <div class="table-container p-3">
@@ -263,7 +270,7 @@ $pageTitle = "Gestión de Pedidos - ".SISTEMA_NOMBRE;
                 <a href="pedido_detalle.php?id=<?= $pedido['id'] ?>" class="btn btn-info btn-action" title="Ver detalles"><i class="bi bi-eye"></i></a>
                 <a href="pedido_editar.php?id=<?= $pedido['id'] ?>" class="btn btn-warning btn-action" title="Editar"><i class="bi bi-pencil"></i></a>
                 <a href="pedido_estado.php?id=<?= $pedido['id'] ?>" class="btn btn-secondary btn-action" title="Cambiar Estado"><i class="bi bi-arrow-repeat"></i></a>
-                <a href="pedido_imprimir.php?id=<?= $pedido['id'] ?>" class="btn btn-success btn-action" title="Imprimir"><i class="bi bi-printer"></i></a>
+                <a href="pedido_imprimir.php?id=<?= $pedido['id'] ?>" class="btn btn-success btn-action" title="Imprimir" target="_blank"><i class="bi bi-printer"></i></a>
               </div>
             </td>
           </tr>

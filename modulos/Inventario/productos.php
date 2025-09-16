@@ -122,39 +122,58 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-    body {
-    background-color: #f8f9fa;
-    }
+        <style>
+        body { background-color: #f8f9fa; }
+        .main-container { max-width: 1200px; margin: 0 auto; }
+        .table-container, .search-section { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-top: 16px; padding: 10px 12px; }
+        .info-cards { display: flex; gap: 8px; margin: 12px 0 6px 0; }
+        .info-card { flex: 1; display: flex; align-items: center; padding: 6px 10px; border-radius: 8px; color: #fff; font-weight: 500; font-size: 0.85rem; line-height: 1.1; min-height: 36px; box-shadow: 0 1px 5px rgba(0,0,0,0.04); }
+        .info-card .icon { font-size: 1.2rem; margin-left: auto; opacity: 0.65; }
+        .ic-blue   { background: linear-gradient(90deg, #396afc 0%, #2948ff 100%); }
+        .ic-yellow { background: linear-gradient(90deg, #fc4a1a 0%, #f7b733 100%); }
+        .ic-green  { background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%); }
+        .ic-cyan   { background: linear-gradient(90deg, #a7a7a7 0%, #636363 100%); }
+        .ic-purple { background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); }
+        .ic-danger { background: linear-gradient(90deg, #d31027 0%, #ea384d 100%); }
+        .table { border-collapse: separate; border-spacing: 0; font-size: 0.85rem; }
+        .table thead th { border-top: none !important; border-bottom: 1px solid #e9ecef !important; padding-top: 5px; padding-bottom: 5px; white-space: nowrap; }
+        .table tbody tr { border-top: none !important; border-bottom: 1px solid #e9ecef; }
+        .table tbody tr:last-child { border-bottom: none; }
+        .table tbody td { border-top: none !important; border-bottom: none !important; padding: 5px 6px; vertical-align: middle; }
+        .btn-action { padding: 3px 6px; margin: 0 1px; border-radius: 5px; font-size: 0.8rem; }
+        .badge-categoria { font-size: 0.75rem; padding: 4px 8px; }
 
-    .main-container {
-    margin: 0 auto;
-    max-width: 1200px;
-    }
+        /* Ajustes para anchos de columna */
+        .table th:nth-child(2),
+        .table td:nth-child(2) {
+            white-space: nowrap;
+        }
 
-    .table-container {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    margin-top: 30px;
-    }
+        .table th:nth-child(5),
+        .table td:nth-child(5),
+        .table th:nth-child(6),
+        .table td:nth-child(6),
+        .table th:nth-child(7),
+        .table td:nth-child(7) {
+            width: 65px;
+            text-align: right;
+        }
 
-    .table th,
-    .table td {
-    vertical-align: middle;
-    }
+        .table th:nth-child(5),
+        .table th:nth-child(6),
+        .table th:nth-child(7) {
+            text-align: right !important;
+        }
 
-    .btn-action {
-    padding: 4px 8px;
-    margin: 0 1px;
-    border-radius: 5px;
-    font-size: 0.85rem;
-    }
-
-    .badge-categoria {
-    font-size: 0.75rem;
-    padding: 4px 8px;
-    }
+        .card .card-body {
+            padding: 0.8rem 1rem;
+        }
+        .card .card-body .fs-4 {
+            font-size: 1.2rem !important;
+        }
+        .card .card-body .fs-1 {
+            font-size: 2rem !important;
+        }
     </style>
 </head>
 
@@ -211,39 +230,42 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
 
     <!-- Filtros y buscador -->
     <div class="bg-white rounded shadow p-3 mb-3">
-    <form method="GET" class="row g-2 align-items-end">
-    <div class="col-md-4">
-    <label class="fw-bold mb-1">Buscar</label>
-    <input type="text" class="form-control" name="busqueda" placeholder="Código, nombre..." value="<?= htmlspecialchars($filtro_busqueda) ?>">
-    </div>
-    <div class="col-md-3">
-    <label class="fw-bold mb-1">Categoría</label>
-    <select class="form-select" name="categoria">
-    <option value="0">Todas</option>
-    <?php foreach ($categorias as $cat): ?>
-    <option value="<?= $cat['id'] ?>" <?= ($filtro_categoria == $cat['id']) ? 'selected' : '' ?>>
-    <?= htmlspecialchars($cat['nombre']) ?>
-    </option>
-    <?php endforeach; ?>
-    </select>
-    </div>
-    <div class="col-md-3">
-    <label class="fw-bold mb-1">Ubicación</label>
-    <select class="form-select" name="lugar">
-    <option value="0">Todas</option>
-    <?php foreach ($lugares as $ubi): ?>
-    <option value="<?= $ubi['id'] ?>" <?= ($filtro_lugar == $ubi['id']) ? 'selected' : '' ?>>
-    <?= htmlspecialchars($ubi['nombre']) ?>
-    </option>
-    <?php endforeach; ?>
-    </select>
-    </div>
-    <!-- CAMBIO: Se intercambió el orden de los botones -->
-    <div class="col-md-2 d-grid gap-2">
-    <a href="producto_form.php" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>Nuevo Producto</a>
-    <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>Filtrar</button>
-    </div>
-    </form>
+        <form method="GET" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <label class="visually-hidden">Buscar</label>
+                <input type="text" class="form-control" name="busqueda" placeholder="Buscar por código, nombre..." value="<?= htmlspecialchars($filtro_busqueda) ?>">
+            </div>
+            <div class="col-md-3">
+                <label class="visually-hidden">Categoría</label>
+                <select class="form-select" name="categoria">
+                    <option value="0">Todas las categorías</option>
+                    <?php foreach ($categorias as $cat): ?>
+                    <option value="<?= $cat['id'] ?>" <?= ($filtro_categoria == $cat['id']) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($cat['nombre']) ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="visually-hidden">Ubicación</label>
+                <select class="form-select" name="lugar">
+                    <option value="0">Todas las ubicaciones</option>
+                    <?php foreach ($lugares as $ubi): ?>
+                    <option value="<?= $ubi['id'] ?>" <?= ($filtro_lugar == $ubi['id']) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($ubi['nombre']) ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>Filtrar</button>
+            </div>
+        </form>
+        <div class="row mt-3">
+            <div class="col-12 text-center">
+                <a href="producto_form.php" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>Nuevo Producto</a>
+            </div>
+        </div>
     </div>
 
     <!-- Tabla Listado de Productos -->

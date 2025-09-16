@@ -108,6 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($mensaje_error)) {
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
+
             ':razon_social'              => $razon_social,
             ':contacto_nombre'           => $contacto ?: null,
             ':identificacion_fiscal'     => $idf_tipo ?: null,
@@ -151,7 +152,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($mensaje_error)) {
     .form-container{max-width:900px;margin:30px auto;background:#fff;border-radius:10px;box-shadow:0 0 15px rgba(0,0,0,.08);overflow:hidden}
     .form-header{background:#0d6efd;color:#fff;padding:16px 20px}
     .hidden{display:none}
-    .codigo-auto{background:#f8f9fa; border:2px solid #28a745; color:#28a745; font-weight:600}
+    .form-control, .form-select {
+        background-color: #e7f5fe !important;
+    }
+    .codigo-auto{background:#e7f5fe !important; border:2px solid #0d6efd; color:#0d6efd; font-weight:600}
     .idf-input{
       width: 26ch;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;

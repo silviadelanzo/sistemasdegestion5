@@ -117,22 +117,25 @@ $pageTitle = "Gestión de Proveedores - " . SISTEMA_NOMBRE;
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-    body { background-color: #f8f9fa; }
-    .main-container { margin: 0 auto; max-width: 1200px; }
-    .table-container { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.08); margin-top: 30px; }
-    .table th, .table td { vertical-align: middle; }
-    .btn-action { padding: 4px 8px; margin: 0 1px; border-radius: 5px; font-size: 0.85rem; }
-    .search-section { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.08); padding: 15px 20px; margin-top: 20px; }
-    .info-cards { display: flex; gap: 20px; margin: 30px 0 10px 0; }
-    .info-card { flex: 1; display: flex; align-items: center; padding: 20px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 1.2rem; box-shadow: 0 4px 16px rgba(0,0,0,.05); min-width: 200px; }
-    .ic-purple { background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%); }
-    .ic-pink   { background: linear-gradient(90deg, #ff758c 0%, #ff7eb3 100%); }
-    .ic-cyan   { background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%); }
-    .ic-green  { background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%); }
-    .info-card .icon { font-size: 2.3rem; margin-left: auto; opacity: 0.7; }
-    .pagination-container { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.08); margin-top: 30px; padding: 15px 0; }
-    .whatsapp-link { color: #25D366; font-size: 1.3em; margin-left: 3px; margin-right: 3px; vertical-align: middle; }
-    .whatsapp-link:hover { color: #128C7E; }
+        body { background-color: #f8f9fa; }
+        .main-container { max-width: 1000px; margin: 0 auto; }
+        .table-container, .search-section, .pagination-container { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-top: 16px; padding: 10px 12px; }
+        .info-cards { display: flex; gap: 8px; margin: 12px 0 6px 0; }
+        .info-card { flex: 1; display: flex; align-items: center; padding: 0.8rem 1rem; border-radius: 8px; color: #fff; font-weight: 500; font-size: 0.85rem; line-height: 1.2; min-height: 36px; box-shadow: 0 1px 5px rgba(0,0,0,0.04); }
+        .info-card .icon { font-size: 1.5rem; margin-left: auto; opacity: 0.65; }
+        .ic-purple { background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%); }
+        .ic-pink   { background: linear-gradient(90deg, #ff758c 0%, #ff7eb3 100%); }
+        .ic-cyan   { background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%); }
+        .ic-green  { background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%); }
+        .table { border-collapse: separate; border-spacing: 0; font-size: 0.92rem; }
+        .table thead th { border-top: none !important; border-bottom: 1px solid #e9ecef !important; padding-top: 6px; padding-bottom: 6px; white-space: nowrap; }
+        .table tbody tr { border-top: none !important; border-bottom: 1px solid #e9ecef; }
+        .table tbody tr:last-child { border-bottom: none; }
+        .table tbody td { border-top: none !important; border-bottom: none !important; padding: 6px 8px; vertical-align: middle; }
+        .btn-action { padding: 4px 8px; margin: 0 1px; border-radius: 5px; font-size: 0.85rem; }
+        .whatsapp-link { color: #25D366; font-size: 1.3em; margin-left: 3px; margin-right: 3px; vertical-align: middle; }
+        .whatsapp-link:hover { color: #128C7E; }
+        .pagination-container { padding: 15px 0; }
     </style>
     <script>
     function openWhatsApp(tel, nombre) {
@@ -176,30 +179,34 @@ $pageTitle = "Gestión de Proveedores - " . SISTEMA_NOMBRE;
 
         <!-- Buscador/Filtros -->
         <div class="search-section">
-            <form method="GET" class="row g-2 align-items-end">
-                <div class="col-md-6">
-                    <label class="form-label fw-bold">Buscar</label>
-                    <input type="text" class="form-control" name="busqueda" placeholder="Código, razón social, email, teléfono..." value="<?= htmlspecialchars($filtro_busqueda) ?>">
+            <form method="GET" class="row g-2 align-items-center">
+                <div class="col-md-5">
+                    <label class="visually-hidden">Buscar</label>
+                    <input type="text" class="form-control" name="busqueda" placeholder="Código, razón social, email..." value="<?= htmlspecialchars($filtro_busqueda) ?>">
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label fw-bold">Estado</label>
+                <div class="col-md-3">
+                    <label class="visually-hidden">Estado</label>
                     <select class="form-select" name="estado">
-                        <option value="todos">Todos</option>
+                        <option value="todos">Todos los estados</option>
                         <option value="activo" <?= $filtro_estado == "activo" ? "selected" : "" ?>>Activo</option>
                         <option value="inactivo" <?= $filtro_estado == "inactivo" ? "selected" : "" ?>>Inactivo</option>
                     </select>
                 </div>
-                <div class="col-md-2 d-grid gap-2">
+                <div class="col-md-4">
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button type="submit" class="btn btn-primary flex-grow-1"><i class="bi bi-search me-1"></i>Filtrar</button>
+                        <a href="compras.php" class="btn btn-info"><i class="bi bi-cart"></i> Compras</a>
+                        <a href="papelera_proveedores.php" class="btn btn-secondary"><i class="bi bi-trash"></i> Papelera</a>
+                    </div>
+                </div>
+            </form>
+            <div class="row mt-3">
+                <div class="col-12 text-center">
                     <a href="new_prov_complete.php?origen=proveedores" class="btn btn-success">
                         <i class="bi bi-plus-circle me-1"></i>Nuevo Proveedor
                     </a>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>Filtrar</button>
                 </div>
-                <div class="col-md-2 d-grid gap-2">
-                    <a href="compras.php" class="btn btn-info"><i class="bi bi-cart"></i> Compras</a>
-                    <a href="papelera_proveedores.php" class="btn btn-secondary"><i class="bi bi-trash"></i> Papelera</a>
-                </div>
-            </form>
+            </div>
         </div>
 
         <!-- Tabla Listado de Proveedores -->

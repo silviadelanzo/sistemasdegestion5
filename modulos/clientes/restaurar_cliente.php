@@ -35,14 +35,21 @@ if ($cliente_id <= 0) {
 
     if (!$cliente) {
         $error = "Cliente no encontrado o ya activo.";
+    } else {
+        // CHEQUEO DE SEGURIDAD MULTI-CUENTA
+        if (isset($_SESSION['cuenta_id']) && $cliente['cuenta_id'] != $_SESSION['cuenta_id']) {
+            error_log("ALERTA DE SEGURIDAD: Usuario ID {$_SESSION['id_usuario']} de cuenta ID {$_SESSION['cuenta_id']} intentó restaurar al cliente ID {$cliente_id} de cuenta ID {$cliente['cuenta_id']}.");
+            $error = "Cliente no encontrado o ya activo."; // Error genérico
+            $cliente = null; // Anular el cliente para que no se muestre la confirmación
+        }
     }
 }
 
 // Procesar confirmación de restauración
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error && $cliente) {
     try {
-        $stmt = $pdo->prepare("UPDATE clientes SET eliminado=0 WHERE id=?");
-        $stmt->execute([$cliente_id]);
+                $stmt = $pdo->prepare("UPDATE clientes SET eliminado=0 WHERE id=? AND cuenta_id = ?");
+        $stmt->execute([$cliente_id, $_SESSION['cuenta_id']]);
         header("Location: clientes.php?msg=restaurado");
         exit;
     } catch (Exception $e) {

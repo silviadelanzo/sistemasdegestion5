@@ -9,6 +9,7 @@ mb_internal_encoding('UTF-8');
 $errores = [];
 $mensaje_exito = '';
 $codigo_pedido = '';
+$cuenta_id_actual = $_SESSION['cuenta_id'];
 
 try {
     $pdo = conectarDB();
@@ -16,10 +17,11 @@ try {
     die('Error de conexión: ' . htmlspecialchars($e->getMessage()));
 }
 
-// Generar código de pedido para mostrar en el formulario
+// Generar código de pedido para mostrar en el formulario (SECURED)
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     try {
-        $stmt = $pdo->query("SELECT MAX(CAST(SUBSTRING(codigo, 5) AS UNSIGNED)) as max_correlativo FROM pedidos WHERE codigo LIKE 'PED-%'");
+        $stmt = $pdo->prepare("SELECT MAX(CAST(SUBSTRING(codigo, 5) AS UNSIGNED)) as max_correlativo FROM pedidos WHERE codigo LIKE 'PED-%' AND cuenta_id = ?");
+        $stmt->execute([$cuenta_id_actual]);
         $max_correlativo = $stmt->fetchColumn() ?? 0;
         $siguiente_correlativo = $max_correlativo + 1;
         $codigo_pedido = 'PED-' . str_pad($siguiente_correlativo, 7, '0', STR_PAD_LEFT);
@@ -28,12 +30,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     }
 }
 
-
-// Obtener clientes y productos
+// Obtener clientes y productos (SECURED)
 $clientes = $productos = [];
 try {
-    $clientes = $pdo->query("SELECT id, CONCAT(nombre, ' ', apellido, ' - ', COALESCE(empresa, '')) as nombre_completo, tipo_cliente FROM clientes WHERE activo = 1 AND eliminado = 0 ORDER BY nombre, apellido")->fetchAll(PDO::FETCH_ASSOC);
-    $productos = $pdo->query("SELECT p.id, p.codigo, p.nombre, p.precio_minorista, p.precio_mayorista FROM productos p ORDER BY p.nombre")->fetchAll(PDO::FETCH_ASSOC);
+    $stmt_clientes = $pdo->prepare("SELECT id, CONCAT(nombre, ' ', apellido, ' - ', COALESCE(empresa, '')) as nombre_completo, tipo_cliente FROM clientes WHERE activo = 1 AND eliminado = 0 AND cuenta_id = ? ORDER BY nombre, apellido");
+    $stmt_clientes->execute([$cuenta_id_actual]);
+    $clientes = $stmt_clientes->fetchAll(PDO::FETCH_ASSOC);
+
+    $stmt_productos = $pdo->prepare("SELECT p.id, p.codigo, p.nombre, p.precio_minorista, p.precio_mayorista FROM productos p WHERE p.activo = 1 AND p.cuenta_id = ? ORDER BY p.nombre");
+    $stmt_productos->execute([$cuenta_id_actual]);
+    $productos = $stmt_productos->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     $errores[] = 'Error al cargar datos: ' . $e->getMessage();
 }
@@ -56,23 +62,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $pdo->beginTransaction();
             
-            // Obtener tipo de cliente
-            $stmt = $pdo->prepare("SELECT tipo_cliente FROM clientes WHERE id = ?");
-            $stmt->execute([$cliente_id]);
-            $cliente = $stmt->fetch();
+            // Obtener tipo de cliente y verificar que pertenezca a la cuenta
+            $stmt_cliente_check = $pdo->prepare("SELECT tipo_cliente, cuenta_id FROM clientes WHERE id = ?");
+            $stmt_cliente_check->execute([$cliente_id]);
+            $cliente = $stmt_cliente_check->fetch();
+
+            if (!$cliente || $cliente['cuenta_id'] != $cuenta_id_actual) {
+                throw new Exception("El cliente seleccionado no es válido o no pertenece a su cuenta.");
+            }
             $tipo_cliente = $cliente['tipo_cliente'];
             
             // Calcular totales
             $subtotal = 0;
             foreach ($productos_pedido as $producto) {
-                // Determinar precio según tipo de cliente
                 $precio = $tipo_cliente === 'mayorista' ? $producto['precio_mayorista'] : $producto['precio_minorista'];
                 $subtotal += $precio * $producto['cantidad'];
             }
             
-            // Insertar pedido
-            $stmt = $pdo->prepare("INSERT INTO pedidos (codigo, cliente_id, subtotal, total, usuario_id) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$codigo_pedido, $cliente_id, $subtotal, $subtotal, $_SESSION['usuario_id']]);
+            // Insertar pedido (SECURED)
+            $stmt = $pdo->prepare("INSERT INTO pedidos (cuenta_id, codigo, cliente_id, subtotal, total, usuario_id) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$cuenta_id_actual, $codigo_pedido, $cliente_id, $subtotal, $subtotal, $_SESSION['id_usuario']]);
             $pedido_id = $pdo->lastInsertId();
             
             // Insertar detalles del pedido
@@ -92,10 +101,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             $pdo->commit();
-            $mensaje_exito = 'Pedido creado exitosamente: ' . $codigo_pedido;
             
-            // Redirigir para evitar reenvío del formulario
-            header('Location: ' . $_SERVER['PHP_SELF'] . '?success=1&pedido=' . $codigo_pedido);
+            header('Location: ' . $_SERVER['PHP_SELF'] . '?success=1&pedido=' . urlencode($codigo_pedido));
             exit;
             
         } catch (Exception $e) {
@@ -105,12 +112,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Mostrar mensaje de éxito después de redirección
 if (isset($_GET['success']) && isset($_GET['pedido'])) {
     $mensaje_exito = 'Pedido creado exitosamente: ' . htmlspecialchars($_GET['pedido']);
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>

@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         try {
             $pdo = conectarDB();
             
-            $sql = "SELECT id, username, password, nombre, email, rol, activo 
+            $sql = "SELECT id, username, password, nombre, email, rol, activo, cuenta_id 
                     FROM usuarios 
                     WHERE username = ? AND activo = 1";
             $stmt = $pdo->prepare($sql);
@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             if ($user && password_verify($password, $user['password'])) {
                 $_SESSION['id_usuario'] = $user['id'];
+                $_SESSION['cuenta_id'] = $user['cuenta_id'];
                 $_SESSION['nombre_usuario'] = $user['nombre'];
                 $_SESSION['correo_electronico_usuario'] = $user['email'];
                 $_SESSION['usuario'] = $user['username'];

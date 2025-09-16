@@ -16,7 +16,7 @@ $filtro_estado = isset($_GET['estado']) ? trim($_GET['estado']) : '';
 $orden_campo = isset($_GET['orden']) ? $_GET['orden'] : 'fecha_creacion';
 $orden_direccion = isset($_GET['dir']) && $_GET['dir'] === 'asc' ? 'ASC' : 'DESC';
 
-$campos_permitidos = ['codigo', 'nombre', 'apellido', 'empresa', 'tipo_cliente', 'telefono', 'activo', 'fecha_creacion'];
+$campos_permitidos = ['codigo', 'nombre', 'apellido', 'razon_social', 'tipo_cliente', 'telefono', 'activo', 'fecha_creacion'];
 if (!in_array($orden_campo, $campos_permitidos)) {
     $orden_campo = 'fecha_creacion';
 }
@@ -49,19 +49,34 @@ try {
         if ($stmt) $facturas_pendientes = $stmt->fetch()['pendientes'] ?? 0;
     }
 
-    // Cards resumen
-    $total_clientes = $pdo->query("SELECT COUNT(*) FROM clientes WHERE eliminado=0")->fetchColumn();
-    $clientes_inactivos = $pdo->query("SELECT COUNT(*) FROM clientes WHERE activo=0 AND eliminado=0")->fetchColumn();
-    $mayoristas = $pdo->query("SELECT COUNT(*) FROM clientes WHERE tipo_cliente='mayorista' AND eliminado=0")->fetchColumn();
-    $minoristas = $pdo->query("SELECT COUNT(*) FROM clientes WHERE tipo_cliente='minorista' AND eliminado=0")->fetchColumn();
-    $ambos = $pdo->query("SELECT COUNT(*) FROM clientes WHERE tipo_cliente='may_min' AND eliminado=0")->fetchColumn();
+    // Cards resumen (con seguridad de cuenta)
+    $cuenta_id_actual = $_SESSION['cuenta_id'];
+    $stmt_total = $pdo->prepare("SELECT COUNT(*) FROM clientes WHERE eliminado=0 AND cuenta_id = ?");
+    $stmt_total->execute([$cuenta_id_actual]);
+    $total_clientes = $stmt_total->fetchColumn();
+
+    $stmt_inactivos = $pdo->prepare("SELECT COUNT(*) FROM clientes WHERE activo=0 AND eliminado=0 AND cuenta_id = ?");
+    $stmt_inactivos->execute([$cuenta_id_actual]);
+    $clientes_inactivos = $stmt_inactivos->fetchColumn();
+
+    $stmt_mayoristas = $pdo->prepare("SELECT COUNT(*) FROM clientes WHERE tipo_cliente='mayorista' AND eliminado=0 AND cuenta_id = ?");
+    $stmt_mayoristas->execute([$cuenta_id_actual]);
+    $mayoristas = $stmt_mayoristas->fetchColumn();
+
+    $stmt_minoristas = $pdo->prepare("SELECT COUNT(*) FROM clientes WHERE tipo_cliente='minorista' AND eliminado=0 AND cuenta_id = ?");
+    $stmt_minoristas->execute([$cuenta_id_actual]);
+    $minoristas = $stmt_minoristas->fetchColumn();
+
+    $stmt_ambos = $pdo->prepare("SELECT COUNT(*) FROM clientes WHERE tipo_cliente='may_min' AND eliminado=0 AND cuenta_id = ?");
+    $stmt_ambos->execute([$cuenta_id_actual]);
+    $ambos = $stmt_ambos->fetchColumn();
 
     // Filtros para listado
-    $where_conditions = ["eliminado=0"];
-    $params = [];
+    $where_conditions = ["eliminado=0", "cuenta_id = ?"];
+    $params = [$_SESSION['cuenta_id']];
 
     if ($filtro_busqueda !== '') {
-        $where_conditions[] = "(codigo LIKE ? OR nombre LIKE ? OR apellido LIKE ? OR empresa LIKE ? OR telefono LIKE ?)";
+        $where_conditions[] = "(codigo LIKE ? OR nombre LIKE ? OR apellido LIKE ? OR razon_social LIKE ? OR telefono LIKE ?)";
         $busqueda = "%{$filtro_busqueda}%";
         array_push($params, $busqueda, $busqueda, $busqueda, $busqueda, $busqueda);
     }
@@ -246,8 +261,8 @@ $pageTitle = "Gestión de Clientes - " . SISTEMA_NOMBRE;
                         </a>
                     </th>
                     <th>
-                        <a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'empresa', 'dir' => $orden_campo === 'empresa' && $orden_direccion === 'ASC' ? 'desc' : 'asc'])) ?>">
-                            Empresa <i class="bi bi-arrow-down-up"></i>
+                        <a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'razon_social', 'dir' => $orden_campo === 'razon_social' && $orden_direccion === 'ASC' ? 'desc' : 'asc'])) ?>">
+                            Razón Social <i class="bi bi-arrow-down-up"></i>
                         </a>
                     </th>
                     <th>
@@ -288,7 +303,7 @@ $pageTitle = "Gestión de Clientes - " . SISTEMA_NOMBRE;
                             <td><code class="text-primary"><?= htmlspecialchars($cli['codigo']) ?></code></td>
                             <td><b><?= htmlspecialchars($cli['apellido']) ?></b></td>
                             <td><?= htmlspecialchars($cli['nombre']) ?></td>
-                            <td><?= htmlspecialchars($cli['empresa']) ?></td>
+                            <td><?= htmlspecialchars($cli['razon_social'] ?? '') ?></td>
                             <td><?= htmlspecialchars($cli['telefono']) ?></td>
                             <td class="text-center">
                                 <a href="#" class="whatsapp-link" title="Enviar WhatsApp"

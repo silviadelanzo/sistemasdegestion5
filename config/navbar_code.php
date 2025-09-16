@@ -84,7 +84,7 @@ $es_administrador = isset($_SESSION['rol_usuario']) && ($_SESSION['rol_usuario']
             </a>
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/compras.php">Compras Detalle</a></li>
-                <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/ocom_listado.php">Órdenes de Compra</a></li>
+                <li><a class="dropdown-item" href="http://localhost/sistemadgestion5/modulos/compras/compra_form.php">Nueva O. de Compra</a></li>
                 <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/recepcion_mercaderia.php">Recepción de Mercadería</a></li>
             </ul>
         </li>
@@ -96,7 +96,7 @@ $es_administrador = isset($_SESSION['rol_usuario']) && ($_SESSION['rol_usuario']
             </a>
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/proveedores.php">Listado de Proveedores</a></li>
-                <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/new_prov_complete.php">A/B/M Proveedores</a></li>
+                <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/new_prov_complete.php">Nuevo proveedor</a></li>
             </ul>
         </li>
 
@@ -107,9 +107,9 @@ $es_administrador = isset($_SESSION['rol_usuario']) && ($_SESSION['rol_usuario']
             </a>
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="<?php echo $base_path; ?>Inventario/productos.php">Listado de Productos</a></li>
+                <li><a class="dropdown-item" href="<?php echo $base_path; ?>Inventario/producto_form.php">Nuevo Producto</a></li>
                 <li><a class="dropdown-item" href="<?php echo $base_path; ?>Inventario/productos_por_categoria.php">Productos por Categoría</a></li>
                 <li><a class="dropdown-item" href="<?php echo $base_path; ?>Inventario/productos_por_lugar.php">Productos por Lugar</a></li>
-                <li><a class="dropdown-item" href="<?php echo $base_path; ?>Inventario/producto_form.php">Nuevo Producto</a></li>
                 <li><a class="dropdown-item" href="<?php echo $base_path; ?>Inventario/productos_inactivos.php">Productos Inactivos</a></li>
             </ul>
         </li>
