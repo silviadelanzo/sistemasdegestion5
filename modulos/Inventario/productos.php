@@ -262,8 +262,20 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
             </div>
         </form>
         <div class="row mt-3">
-            <div class="col-12 text-center">
-                <a href="producto_form.php" class="btn btn-success"><i class="bi bi-plus-circle me-1"></i>Nuevo Producto</a>
+            <div class="col-12 d-flex justify-content-between align-items-center">
+                <!-- Left side buttons -->
+                <div>
+                    <a href="productos_por_categoria.php" class="btn btn-info"><i class="bi bi-tags me-1"></i> Por Categoría</a>
+                    <a href="productos_por_lugar.php" class="btn btn-primary"><i class="bi bi-geo-alt me-1"></i> Por Ubicación</a>
+                </div>
+                
+                <!-- Center button -->
+                <a href="producto_form.php" class="btn btn-success btn-lg"><i class="bi bi-plus-circle me-1"></i>Nuevo Producto</a>
+
+                <!-- Right side buttons -->
+                <div>
+                     <a href="productos_inactivos.php" class="btn btn-warning"><i class="bi bi-archive me-1"></i> Ver Inactivos</a>
+                </div>
             </div>
         </div>
     </div>
@@ -273,7 +285,7 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
     <h4 class="mb-0"><i class="bi bi-list-ul me-2"></i>Lista de Productos</h4>
     <div class="d-flex gap-2">
-    <a href="productos_inactivos.php" class="btn btn-danger"><i class="bi bi-archive"></i> Inactivos</a>
+    
     <div class="btn-group">
     <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
     <i class="bi bi-file-earmark-excel"></i> Exportar

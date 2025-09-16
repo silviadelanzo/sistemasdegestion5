@@ -96,221 +96,23 @@ try {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .main-container { margin: 0 auto; max-width: 1200px; padding: 20px; }
-
-        .page-header-section {
-            background-color: #f8f9fa;
-            padding: 20px 15px 15px 15px;
-            border-bottom: 2px solid #dee2e6;
-            flex-shrink: 0;
-        }
-
-        .fixed-footer {
-            flex-shrink: 0;
-            background-color: white;
-            border-top: 2px solid #dee2e6;
-            padding: 20px;
-        }
-
-        .scrollable-content {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 15px;
-        }
-
-        .summary-card {
-            border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            border-radius: 12px;
-            height: 130px;
-            transition: transform 0.2s;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .summary-card::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.4);
-        }
-
-        .summary-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-        }
-
-        .summary-card .card-body {
-            padding: 15px;
-            text-align: center;
-        }
-
-        .stat-icon {
-            font-size: 2.2rem;
-            opacity: 0.9;
-            margin-bottom: 8px;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin: 0 0 10px 0;
-            line-height: 1.2;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            margin: 0;
-            line-height: 1;
-        }
-
-        .location-section {
-            border: none;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            border-radius: 10px;
-        }
-
-        .location-header {
-            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-            color: white;
-            border-radius: 10px 10px 0 0;
-            padding: 15px 20px;
-        }
-
-        .location-totals {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-bottom: 2px solid #dee2e6;
-            padding: 15px 20px;
-            font-size: 1.1rem;
-        }
-
-        .location-totals .total-item {
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .location-totals .total-value {
-            color: #0d6efd;
-            font-weight: 900;
-            font-size: 1.3rem;
-        }
-
-        .product-row:hover {
-            background-color: #f8f9fa;
-        }
-
-        .table {
-            table-layout: fixed !important;
-            width: 100% !important;
-        }
-
-        .table th:nth-child(1),
-        .table td:nth-child(1) {
-            width: 120px !important;
-        }
-
-        .table th:nth-child(3),
-        .table td:nth-child(3) {
-            width: 120px !important;
-            text-align: center !important;
-            vertical-align: middle !important;
-        }
-
-        .table th:nth-child(4),
-        .table td:nth-child(4) {
-            width: 140px !important;
-            text-align: right !important;
-        }
-
-        .table th:nth-child(5),
-        .table td:nth-child(5) {
-            width: 140px !important;
-            text-align: right !important;
-        }
-
-        .table th:nth-child(6),
-        .table td:nth-child(6) {
-            width: 120px !important;
-            text-align: center !important;
-        }
-
-        .quantity-badge {
-            background-color: #0d6efd !important;
-            color: white;
-            font-weight: bold;
-            padding: 8px 14px;
-            border-radius: 8px;
-            min-width: 60px;
-            text-align: center;
-            display: inline-block;
-            font-size: 0.95rem;
-        }
-
-        .quantity-column {
-            width: 120px !important;
-            text-align: center !important;
-            vertical-align: middle !important;
-            padding: 12px !important;
-        }
-
-        .no-products {
-            color: #6c757d;
-            font-style: italic;
-            text-align: center;
-            padding: 40px;
-            font-size: 1.1rem;
-        }
-
-        .action-btn {
-            border: none !important;
-            font-weight: 600;
-            padding: 12px 20px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            text-decoration: none;
-            display: inline-block;
-            width: 100%;
-            text-align: center;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .action-btn-primary {
-            background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
-            color: white;
-        }
-
-        .action-btn-success {
-            background: linear-gradient(135deg, #198754 0%, #146c43 100%);
-            color: white;
-        }
-
-        .action-btn-info {
-            background: linear-gradient(135deg, #0dcaf0 0%, #087990 100%);
-            color: white;
-        }
-
-        .action-btn-warning {
-            background: linear-gradient(135deg, #ffc107 0%, #d39e00 100%);
-            color: #000;
-        }
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .main-container { margin: 0 auto; max-width: 1000px; padding: 15px; }
+        .page-header-section { padding: 15px; border-bottom: 1px solid #dee2e6; margin-bottom: 15px; }
+        .summary-card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px; height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .summary-card .card-body { padding: 10px; text-align: center; }
+        .stat-icon { font-size: 1.8rem; margin-bottom: 5px; }
+        .stat-label { font-size: 0.8rem; font-weight: 500; margin: 0; }
+        .stat-number { font-size: 1.5rem; font-weight: 600; margin: 0; }
+        .location-section { box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; border-radius: 8px; }
+        .location-header { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); color: white; border-radius: 8px 8px 0 0; padding: 10px 15px; }
+        .location-header h4 { font-size: 1.1rem; }
+        .location-totals { padding: 10px 15px; font-size: 0.9rem; background-color: #f8f9fa; }
+        .location-totals .total-item { font-weight: 500; }
+        .location-totals .total-value { font-weight: 700; color: #0d6efd; }
+        .table { font-size: 0.85rem; }
+        .table th, .table td { padding: 5px 8px; }
+        .action-btn { font-weight: 500; padding: 8px 15px; border-radius: 6px; }
     </style>
 </head>
 

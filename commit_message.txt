@@ -1,3 +1,0 @@
-chore: Actualizar .gitignore para ignorar display_proveedores.php
-
-Se añade `display_proveedores.php` al archivo `.gitignore` ya que es un script de utilidad temporal para depuración y no debe ser rastreado en el repositorio.
