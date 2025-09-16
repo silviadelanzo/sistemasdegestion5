@@ -51,25 +51,24 @@ try {
 
     // Cards resumen (con seguridad de cuenta)
     $cuenta_id_actual = $_SESSION['cuenta_id'];
-    $stmt_total = $pdo->prepare("SELECT COUNT(*) FROM clientes WHERE eliminado=0 AND cuenta_id = ?");
-    $stmt_total->execute([$cuenta_id_actual]);
-    $total_clientes = $stmt_total->fetchColumn();
+    $stmt_cards = $pdo->prepare("
+        SELECT
+            COUNT(*) as total_clientes,
+            SUM(CASE WHEN activo = 1 THEN 1 ELSE 0 END) as clientes_activos,
+            SUM(CASE WHEN activo = 0 THEN 1 ELSE 0 END) as clientes_inactivos,
+            SUM(CASE WHEN tipo_cliente = 'mayorista' THEN 1 ELSE 0 END) as mayoristas,
+            SUM(CASE WHEN tipo_cliente = 'minorista' THEN 1 ELSE 0 END) as minoristas
+        FROM clientes
+        WHERE eliminado = 0 AND cuenta_id = ?
+    ");
+    $stmt_cards->execute([$cuenta_id_actual]);
+    $card_data = $stmt_cards->fetch(PDO::FETCH_ASSOC);
 
-    $stmt_inactivos = $pdo->prepare("SELECT COUNT(*) FROM clientes WHERE activo=0 AND eliminado=0 AND cuenta_id = ?");
-    $stmt_inactivos->execute([$cuenta_id_actual]);
-    $clientes_inactivos = $stmt_inactivos->fetchColumn();
-
-    $stmt_mayoristas = $pdo->prepare("SELECT COUNT(*) FROM clientes WHERE tipo_cliente='mayorista' AND eliminado=0 AND cuenta_id = ?");
-    $stmt_mayoristas->execute([$cuenta_id_actual]);
-    $mayoristas = $stmt_mayoristas->fetchColumn();
-
-    $stmt_minoristas = $pdo->prepare("SELECT COUNT(*) FROM clientes WHERE tipo_cliente='minorista' AND eliminado=0 AND cuenta_id = ?");
-    $stmt_minoristas->execute([$cuenta_id_actual]);
-    $minoristas = $stmt_minoristas->fetchColumn();
-
-    $stmt_ambos = $pdo->prepare("SELECT COUNT(*) FROM clientes WHERE tipo_cliente='may_min' AND eliminado=0 AND cuenta_id = ?");
-    $stmt_ambos->execute([$cuenta_id_actual]);
-    $ambos = $stmt_ambos->fetchColumn();
+    $total_clientes = $card_data['total_clientes'] ?? 0;
+    $clientes_activos = $card_data['clientes_activos'] ?? 0;
+    $clientes_inactivos = $card_data['clientes_inactivos'] ?? 0;
+    $mayoristas = $card_data['mayoristas'] ?? 0;
+    $minoristas = $card_data['minoristas'] ?? 0;
 
     // Filtros para listado
     $where_conditions = ["eliminado=0", "cuenta_id = ?"];
@@ -110,7 +109,7 @@ try {
     $error_message = "Error al cargar clientes: " . $e->getMessage();
     $clientes = [];
     $total_pages = 1;
-    $total_clientes = 0; $clientes_inactivos = 0; $mayoristas = 0; $minoristas = 0; $ambos = 0;
+    $total_clientes = 0; $clientes_activos = 0; $clientes_inactivos = 0; $mayoristas = 0; $minoristas = 0;
 }
 
 $pageTitle = "Gestión de Clientes - " . SISTEMA_NOMBRE;
@@ -126,38 +125,36 @@ $pageTitle = "Gestión de Clientes - " . SISTEMA_NOMBRE;
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body { background-color: #f8f9fa; }
-        .main-container { margin: 0 auto; max-width: 1200px; }
-        .table-container {
-            background: white; border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-top: 30px;
-        }
+        .main-container { margin: 0 auto; max-width: 1000px; }
+        .table-container { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-top: 20px; }
+        .table { font-size: 0.85rem; }
         .table th, .table td { vertical-align: middle; }
+        .table th:nth-child(2), .table td:nth-child(2),
+        .table th:nth-child(3), .table td:nth-child(3),
+        .table th:nth-child(4), .table td:nth-child(4) {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
         .btn-action { padding: 4px 8px; margin: 0 1px; border-radius: 5px; font-size: 0.85rem; }
-        .search-section { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); padding: 15px 20px; margin-top: 20px; }
-        .info-cards { display: flex; gap: 20px; margin: 30px 0 10px 0;}
-        @media (max-width: 991px) { .info-cards { flex-direction: column; gap:12px; } }
+        .search-section { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); padding: 20px; margin-top: 20px; }
+        .info-cards { display: flex; gap: 10px; margin: 20px 0 10px 0;}
+        @media (max-width: 991px) { .info-cards { flex-direction: column; } }
         .info-card {
-            flex: 1; display: flex; align-items: center; padding: 20px;
-            border-radius: 12px; color: #fff; font-weight: 600; font-size: 1.2rem;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.05); min-width: 200px;
+            flex: 1; display: flex; align-items: center; padding: 10px;
+            border-radius: 10px; color: #fff; font-weight: 500; font-size: 0.9rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
         .ic-blue { background: linear-gradient(90deg, #396afc 0%, #2948ff 100%);}
         .ic-gray { background: linear-gradient(90deg, #a7a7a7 0%, #636363 100%);}
         .ic-orange { background: linear-gradient(90deg, #fc4a1a 0%, #f7b733 100%);}
         .ic-pink { background: linear-gradient(90deg, #ff758c 0%, #ff7eb3 100%);}
         .ic-green { background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);}
-        .info-card .icon { font-size:2.3rem; margin-left: auto; opacity:0.7;}
-        .pagination-container { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-top: 30px; padding: 15px 0;}
-        .whatsapp-link {
-            color: #25D366;
-            font-size: 1.3em;
-            margin-left: 3px;
-            margin-right: 3px;
-            vertical-align: middle;
-        }
-        .whatsapp-link:hover {
-            color: #128C7E;
-        }
+        .info-card .icon { font-size: 1.8rem; margin-left: auto; opacity:0.7;}
+        .pagination-container { background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-top: 20px; padding: 15px 0;}
+        .whatsapp-link { color: #25D366; font-size: 1.3em; vertical-align: middle; }
+        .whatsapp-link:hover { color: #128C7E; }
     </style>
     <script>
     function openWhatsApp(tel, nombre) {
@@ -183,58 +180,59 @@ $pageTitle = "Gestión de Clientes - " . SISTEMA_NOMBRE;
             <?= number_format($total_clientes) ?> <span style="font-size:0.9rem;font-weight:400;margin-left:8px;">Clientes</span>
             <span class="icon ms-2"><i class="bi bi-people"></i></span>
         </div>
+        <div class="info-card ic-green">
+            <?= number_format($clientes_activos) ?> <span style="font-size:0.9rem;font-weight:400;margin-left:8px;">Activos</span>
+            <span class="icon ms-2"><i class="bi bi-check-circle"></i></span>
+        </div>
         <div class="info-card ic-gray">
             <?= number_format($clientes_inactivos) ?> <span style="font-size:0.9rem;font-weight:400;margin-left:8px;">Inactivos</span>
             <span class="icon ms-2"><i class="bi bi-person-x"></i></span>
-        </div>
-        <div class="info-card ic-orange">
-            <?= number_format($mayoristas) ?> <span style="font-size:0.9rem;font-weight:400;margin-left:8px;">Mayoristas</span>
-            <span class="icon ms-2"><i class="bi bi-briefcase"></i></span>
         </div>
         <div class="info-card ic-pink">
             <?= number_format($minoristas) ?> <span style="font-size:0.9rem;font-weight:400;margin-left:8px;">Minoristas</span>
             <span class="icon ms-2"><i class="bi bi-person"></i></span>
         </div>
-        <div class="info-card ic-green">
-            <?= number_format($ambos) ?> <span style="font-size:0.9rem;font-weight:400;margin-left:8px;">Ambos</span>
-            <span class="icon ms-2"><i class="bi bi-people-fill"></i></span>
+        <div class="info-card ic-orange">
+            <?= number_format($mayoristas) ?> <span style="font-size:0.9rem;font-weight:400;margin-left:8px;">Mayoristas</span>
+            <span class="icon ms-2"><i class="bi bi-briefcase"></i></span>
         </div>
     </div>
 
     <!-- Buscador/Filtros -->
     <div class="search-section">
-        <form method="GET" class="row g-2 align-items-end">
+        <form method="GET" class="row g-2 align-items-center mb-3">
             <div class="col-md-4">
-                <label class="form-label fw-bold">Buscar</label>
-                <input type="text" class="form-control" name="busqueda" placeholder="Código, nombre, empresa, teléfono..." value="<?= htmlspecialchars($filtro_busqueda) ?>">
+                <label class="visually-hidden">Buscar</label>
+                <input type="text" class="form-control" name="busqueda" placeholder="Código, nombre, empresa..." value="<?= htmlspecialchars($filtro_busqueda) ?>">
             </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold">Tipo Cliente</label>
+            <div class="col-md-3">
+                <label class="visually-hidden">Tipo Cliente</label>
                 <select class="form-select" name="tipo_cliente">
-                    <option value="todos">Todos</option>
+                    <option value="todos">Todos los Tipos</option>
                     <option value="mayorista" <?= $filtro_tipo == "mayorista" ? "selected" : "" ?>>Mayorista</option>
                     <option value="minorista" <?= $filtro_tipo == "minorista" ? "selected" : "" ?>>Minorista</option>
                     <option value="may_min" <?= $filtro_tipo == "may_min" ? "selected" : "" ?>>Ambos</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold">Estado</label>
+            <div class="col-md-3">
+                <label class="visually-hidden">Estado</label>
                 <select class="form-select" name="estado">
-                    <option value="todos">Todos</option>
+                    <option value="todos">Todos los Estados</option>
                     <option value="activo" <?= $filtro_estado == "activo" ? "selected" : "" ?>>Activo</option>
                     <option value="inactivo" <?= $filtro_estado == "inactivo" ? "selected" : "" ?>>Inactivo</option>
                 </select>
             </div>
-            <!-- Nuevo Cliente primero, Filtrar abajo -->
-            <div class="col-md-2 d-grid gap-2">
-                <a href="cliente_form.php" class="btn btn-success"><i class="bi bi-person-plus me-1"></i>Nuevo Cliente</a>
+            <div class="col-md-2 d-grid">
                 <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>Filtrar</button>
             </div>
-            <div class="col-md-2 d-grid gap-2">
-                <a href="clientes_inactivos.php" class="btn btn-danger"><i class="bi bi-person-x"></i> Inactivos</a>
-                <a href="papelera_clientes.php" class="btn btn-secondary"><i class="bi bi-trash"></i> Papelera</a>
-            </div>
         </form>
+        <div class="row">
+            <div class="col-12 text-center">
+                <a href="cliente_form.php" class="btn btn-success"><i class="bi bi-person-plus me-1"></i>Nuevo Cliente</a>
+                <a href="clientes_inactivos.php" class="btn btn-warning"><i class="bi bi-person-x me-1"></i>Ver Inactivos</a>
+                <a href="papelera_clientes.php" class="btn btn-secondary"><i class="bi bi-trash me-1"></i>Ver Papelera</a>
+            </div>
+        </div>
     </div>
 
     <div class="table-container p-3">
