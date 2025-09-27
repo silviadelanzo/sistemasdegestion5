@@ -522,7 +522,7 @@ try {
                                                     </option>
                                                 <?php endforeach; ?>
                                             </select>
-                                            <a href="../proveedores/new_prov_complete.php?origen=compras" class="btn btn-success btn-custom">
+                                            <a href="../proveedores/new_proveedor.php?origen=compras" class="btn btn-success btn-custom">
                                                 <i class="fas fa-plus"></i> Nuevo
                                             </a>
                                         </div>

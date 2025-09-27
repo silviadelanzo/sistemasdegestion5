@@ -47,7 +47,7 @@ $es_administrador = isset($_SESSION['rol_usuario']) && (
           </a>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/proveedores.php"><i class="bi bi-list-ul me-2"></i>Listado Proveedores</a></li>
-            <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/new_prov_complete.php?origen=proveedores"><i class="bi bi-pencil-square me-2"></i>A/B/M Proveedores</a></li>
+            <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/new_proveedor.php?origen=proveedores"><i class="bi bi-pencil-square me-2"></i>A/B/M Proveedores</a></li>
             <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/ocom_listado.php"><i class="bi bi-file-earmark-plus me-2"></i>+ Orden de Compra</a></li>
             <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/recepcion_mercaderia.php"><i class="bi bi-box-arrow-in-down me-2"></i>Recep. Mercad. c/Remito</a></li>
           </ul>

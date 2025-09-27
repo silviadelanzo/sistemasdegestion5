@@ -96,7 +96,7 @@ $es_administrador = isset($_SESSION['rol_usuario']) && ($_SESSION['rol_usuario']
             </a>
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/proveedores.php">Listado de Proveedores</a></li>
-                <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/new_prov_complete.php">Nuevo proveedor</a></li>
+                <li><a class="dropdown-item" href="<?php echo $base_path; ?>compras/new_proveedor.php">Nuevo proveedor</a></li>
             </ul>
         </li>
 

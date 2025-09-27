@@ -1,36 +1,27 @@
 <?php
 require_once '../../config/config.php';
-
 iniciarSesionSegura();
 requireLogin('../../login.php');
 header('Content-Type: text/html; charset=UTF-8');
-
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $per_page = 20;
 $offset = ($page - 1) * $per_page;
-
 $filtro_busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
 $filtro_estado = isset($_GET['estado']) ? trim($_GET['estado']) : '';
-
 $orden_campo = isset($_GET['orden']) ? $_GET['orden'] : 'razon_social';
 $orden_direccion = isset($_GET['dir']) && $_GET['dir'] === 'asc' ? 'ASC' : 'DESC';
-
 $campos_permitidos = ['codigo', 'razon_social', 'email', 'telefono', 'activo', 'fecha_creacion'];
 if (!in_array($orden_campo, $campos_permitidos)) {
     $orden_campo = 'razon_social';
 }
-
 $usuario_nombre = $_SESSION['nombre_usuario'] ?? 'Usuario';
 $usuario_rol = $_SESSION['rol_usuario'] ?? 'inventario';
 $es_administrador = ($usuario_rol === 'admin' || $usuario_rol === 'administrador');
-
 $compras_pendientes = 0;
 $facturas_pendientes = 0;
-
 try {
     $pdo = conectarDB();
     $pdo->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
-
     // Verificar si las columnas de papelera existen, si no crearlas
     $stmt_tables = $pdo->query("SHOW COLUMNS FROM proveedores LIKE 'eliminado'");
     if ($stmt_tables->rowCount() === 0) {
@@ -38,7 +29,6 @@ try {
         $pdo->exec("ALTER TABLE proveedores ADD COLUMN fecha_eliminacion DATETIME NULL");
         $pdo->exec("ALTER TABLE proveedores ADD COLUMN eliminado_por VARCHAR(100) NULL");
     }
-
     // Badges para el menú (compras/facturas pendientes)
     $tablas_existentes = [];
     $stmt_tables = $pdo->query("SHOW TABLES");
@@ -55,17 +45,14 @@ try {
         $stmt = $pdo->query("SELECT COUNT(*) as pendientes FROM facturas WHERE estado = 'pendiente'");
         if ($stmt) $facturas_pendientes = $stmt->fetch()['pendientes'] ?? 0;
     }
-
     // Dashboard - solo proveedores no eliminados
     $total_proveedores = $pdo->query("SELECT COUNT(*) FROM proveedores WHERE eliminado = 0")->fetchColumn();
     $proveedores_activos = $pdo->query("SELECT COUNT(*) FROM proveedores WHERE activo=1 AND eliminado = 0")->fetchColumn();
     $proveedores_inactivos = $pdo->query("SELECT COUNT(*) FROM proveedores WHERE activo=0 AND eliminado = 0")->fetchColumn();
     $compras_mes = $pdo->query("SELECT COUNT(*) FROM compras WHERE MONTH(fecha_compra) = MONTH(CURRENT_DATE) AND YEAR(fecha_compra) = YEAR(CURRENT_DATE)")->fetchColumn();
-
     // Filtros para listado - excluir eliminados
     $where_conditions = ['eliminado = 0'];
     $params = [];
-
     if ($filtro_busqueda !== '') {
         $where_conditions[] = "(codigo LIKE ? OR razon_social LIKE ? OR email LIKE ? OR telefono LIKE ?)";
         $busqueda = "%{$filtro_busqueda}%";
@@ -76,9 +63,7 @@ try {
         $params[] = ($filtro_estado === 'activo') ? 1 : 0;
     }
     $where_clause = implode(' AND ', $where_conditions);
-
     $orden_sql = $orden_campo;
-
     // Listado de proveedores
     $sql = "SELECT * FROM proveedores WHERE $where_clause
             ORDER BY $orden_sql $orden_direccion
@@ -86,13 +71,11 @@ try {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $proveedores = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
     $count_sql = "SELECT COUNT(*) FROM proveedores WHERE $where_clause";
     $count_stmt = $pdo->prepare($count_sql);
     $count_stmt->execute($params);
     $proveedores_filtrados = $count_stmt->fetchColumn();
     $total_pages = ceil($proveedores_filtrados / $per_page);
-
 } catch (Exception $e) {
     $error_message = "Error al cargar proveedores: " . $e->getMessage();
     $proveedores = [];
@@ -103,7 +86,6 @@ try {
     $compras_mes = 0;
     $proveedores_filtrados = 0;
 }
-
 $pageTitle = "Gestión de Proveedores - " . SISTEMA_NOMBRE;
 ?>
 <!DOCTYPE html>
@@ -151,12 +133,9 @@ $pageTitle = "Gestión de Proveedores - " . SISTEMA_NOMBRE;
     }
     </script>
 </head>
-
 <body>
     <?php include "../../config/navbar_code.php"; ?>
-
     <div class="main-container">
-
         <!-- Tarjetas resumen -->
         <div class="info-cards">
             <div class="info-card ic-purple">
@@ -176,7 +155,6 @@ $pageTitle = "Gestión de Proveedores - " . SISTEMA_NOMBRE;
                 <span class="icon ms-2"><i class="bi bi-cart-plus"></i></span>
             </div>
         </div>
-
         <!-- Buscador/Filtros -->
         <div class="search-section">
             <form method="GET" class="row g-2 align-items-center">
@@ -196,19 +174,18 @@ $pageTitle = "Gestión de Proveedores - " . SISTEMA_NOMBRE;
                     <div class="d-grid gap-2 d-md-flex">
                         <button type="submit" class="btn btn-primary flex-grow-1"><i class="bi bi-search me-1"></i>Filtrar</button>
                         <a href="compras.php" class="btn btn-info"><i class="bi bi-cart"></i> Compras</a>
-                        <a href="papelera_proveedores.php" class="btn btn-secondary"><i class="bi bi-trash"></i> Papelera</a>
+                        <a href="proveedores_inactivos.php" class="btn btn-warning"><i class="bi bi-archive"></i> Inactivos</a>
                     </div>
                 </div>
             </form>
             <div class="row mt-3">
                 <div class="col-12 text-center">
-                    <a href="new_prov_complete.php?origen=proveedores" class="btn btn-success">
+                    <a href="new_proveedor.php?origen=proveedores" class="btn btn-success">
                         <i class="bi bi-plus-circle me-1"></i>Nuevo Proveedor
                     </a>
                 </div>
             </div>
         </div>
-
         <!-- Tabla Listado de Proveedores -->
         <div class="table-container p-3">
             <!-- Mensajes de éxito/error -->
@@ -224,13 +201,6 @@ $pageTitle = "Gestión de Proveedores - " . SISTEMA_NOMBRE;
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             <?php endif; ?>
-            <?php if (isset($_GET['msg']) && $_GET['msg'] == 'eliminado'): ?>
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <i class="bi bi-trash-fill"></i> Proveedor movido a papelera. <a href="papelera_proveedores.php" class="alert-link">Ver papelera</a>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            <?php endif; ?>
-
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="mb-0"><i class="bi bi-list-ul me-2"></i>Lista de Proveedores</h4>
             </div>
@@ -294,21 +264,16 @@ $pageTitle = "Gestión de Proveedores - " . SISTEMA_NOMBRE;
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <!-- Editar en pantalla dedicada -->
-                                    <a href="edi_prov.php?id=<?= (int)$proveedor['id'] ?>&origen=proveedores"
+                                    <a href="new_proveedor.php?id=<?= (int)$proveedor['id'] ?>&origen=proveedores"
                                        class="btn btn-warning btn-action" title="Editar">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-
                                     <a href="proveedor_detalle.php?id=<?= (int)$proveedor['id'] ?>" class="btn btn-info btn-action" title="Ver Detalle">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a href="gestionar_proveedor.php?accion=cambiar_estado&id=<?= (int)$proveedor['id'] ?>" class="btn btn-secondary btn-action" title="<?= $proveedor['activo'] ? 'Desactivar' : 'Activar' ?>">
-                                        <i class="bi bi-<?= $proveedor['activo'] ? 'pause' : 'play' ?>"></i>
-                                    </a>
-                                    <a href="gestionar_proveedor.php?accion=eliminar&id=<?= (int)$proveedor['id'] ?>" class="btn btn-danger btn-action" title="Mover a Papelera" onclick="return confirm('¿Mover este proveedor a la papelera?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
+                                    <button onclick="inactivarProveedor(<?= (int)$proveedor['id'] ?>, '<?= htmlspecialchars(addslashes($proveedor['razon_social'])) ?>')" class="btn btn-secondary btn-action" title="Inactivar">
+                                        <i class="bi bi-archive"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -317,7 +282,6 @@ $pageTitle = "Gestión de Proveedores - " . SISTEMA_NOMBRE;
                     </tbody>
                 </table>
             </div>
-
             <?php if ($total_pages > 1): ?>
             <div class="pagination-container">
                 <nav aria-label="Navegación de proveedores">
@@ -370,6 +334,91 @@ $pageTitle = "Gestión de Proveedores - " . SISTEMA_NOMBRE;
         </div>
     </div>
 
+    <!-- Modal para Inactivar -->
+    <div class="modal fade" id="modalInactivar" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Inactivación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro que desea inactivar el proveedor <strong id="nombreProveedorInactivar"></strong>?</p>
+                    <p class="text-muted">El proveedor se moverá a la lista de inactivos y no aparecerá en compras ni búsquedas.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning" id="confirmarInactivar">
+                        <i class="bi bi-archive me-1"></i>Inactivar Proveedor
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    let proveedorIdActual = null;
+    function inactivarProveedor(id, nombre) {
+        proveedorIdActual = id;
+        document.getElementById('nombreProveedorInactivar').textContent = nombre;
+        new bootstrap.Modal(document.getElementById('modalInactivar')).show();
+    }
+    document.getElementById('confirmarInactivar').addEventListener('click', function() {
+        if (proveedorIdActual) {
+            gestionarProveedor('inactivar', proveedorIdActual);
+        }
+    });
+    function gestionarProveedor(accion, id) {
+        const btn = document.getElementById('confirmarInactivar');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Procesando...';
+        btn.disabled = true;
+        fetch('gestionar_proveedor.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                accion: accion,
+                id: id
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('modalInactivar')).hide();
+                mostrarMensaje(data.message, 'success');
+                setTimeout(() => window.location.reload(), 700);
+            } else {
+                mostrarMensaje(data.message || 'Error desconocido', 'danger');
+                bootstrap.Modal.getInstance(document.getElementById('modalInactivar')).hide();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            mostrarMensaje('Error al procesar la solicitud.', 'danger');
+            bootstrap.Modal.getInstance(document.getElementById('modalInactivar')).hide();
+        })
+        .finally(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+    function mostrarMensaje(mensaje, tipo) {
+        const alertContainer = document.createElement('div');
+        alertContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1056; min-width: 300px;';
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alertDiv.innerHTML = `<i class="bi bi-${tipo === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill'} me-2"></i>${mensaje}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+        alertContainer.appendChild(alertDiv);
+        document.body.appendChild(alertContainer);
+        new bootstrap.Alert(alertDiv);
+        setTimeout(() => {
+            alertDiv.classList.remove('show');
+            setTimeout(() => alertContainer.remove(), 150);
+        }, 5000);
+    }
+    </script>
 </body>
 </html>

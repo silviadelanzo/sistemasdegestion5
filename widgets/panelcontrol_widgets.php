@@ -52,9 +52,9 @@ foreach ($eventos as $e) {
 
 <div class="calendario">
   <div class="nav">
-    <a href="javascript:cargarCalendario(<?php echo $mesAnterior; ?>,<?php echo $anioAnterior; ?>)">&lt;&lt;</a>
+    <a href="#" data-mes="<?php echo $mesAnterior; ?>" data-anio="<?php echo $anioAnterior; ?>" class="nav-link-prev">&lt;&lt;</a>
     <h3><?php echo $nombresMes[$mes]." ".$anio; ?></h3>
-    <a href="javascript:cargarCalendario(<?php echo $mesSiguiente; ?>,<?php echo $anioSiguiente; ?>)">&gt;&gt;</a>
+    <a href="#" data-mes="<?php echo $mesSiguiente; ?>" data-anio="<?php echo $anioSiguiente; ?>" class="nav-link-next">&gt;&gt;</a>
   </div>
   <table>
     <tr>

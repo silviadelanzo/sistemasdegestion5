@@ -360,7 +360,7 @@ $productos = $pdo->query("SELECT * FROM productos WHERE activo = 1 ORDER BY nomb
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
-                                    <a href="new_prov_complete.php?origen=compras" class="btn btn-nuevo">
+                                    <a href="new_proveedor.php?origen=compras" class="btn btn-nuevo">
                                         <i class="fas fa-plus"></i> <span class="d-none d-sm-inline">Nuevo</span>
                                     </a>
                                 </div>

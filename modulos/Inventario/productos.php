@@ -1,33 +1,26 @@
 <?php
 require_once '../../config/config.php';
-
 iniciarSesionSegura();
 requireLogin('../../login.php');
 header('Content-Type: text/html; charset=UTF-8');
-
 // Paginación y filtros
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $per_page = 20;
 $offset = ($page - 1) * $per_page;
-
 $filtro_categoria = isset($_GET['categoria']) ? intval($_GET['categoria']) : 0;
 $filtro_lugar = isset($_GET['lugar']) ? intval($_GET['lugar']) : 0;
 $filtro_busqueda = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
-
 $orden_campo = isset($_GET['orden']) ? $_GET['orden'] : 'fecha_creacion';
 $orden_direccion = (isset($_GET['dir']) && strtolower($_GET['dir']) === 'asc') ? 'ASC' : 'DESC';
 // Se agrega 'pedidos_pendientes' a los campos permitidos para ordenar
 $campos_permitidos = ['codigo', 'nombre', 'categoria_nombre', 'lugar_nombre', 'stock', 'stock_minimo', 'precio_venta', 'fecha_creacion', 'pedidos_pendientes'];
 if (!in_array($orden_campo, $campos_permitidos)) $orden_campo = 'fecha_creacion';
-
 $usuario_nombre = $_SESSION['nombre_usuario'] ?? 'Usuario';
 $usuario_rol = $_SESSION['rol_usuario'] ?? 'inventario';
 $es_administrador = ($usuario_rol === 'admin' || $usuario_rol === 'administrador');
-
 try {
     $pdo = conectarDB();
     $pdo->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
-
     // Badges menú superior (puedes agregar más si necesitas)
     $compras_pendientes = 0;
     $facturas_pendientes = 0;
@@ -42,7 +35,6 @@ try {
     $stmt = $pdo->query("SELECT COUNT(*) as pendientes FROM facturas WHERE estado = 'pendiente'");
     if ($stmt) $facturas_pendientes = $stmt->fetch()['pendientes'] ?? 0;
     }
-
     // Filtros para productos activos
     $where_conditions = ["p.activo=1"];
     $params = [];
@@ -61,10 +53,8 @@ try {
     $params[] = $busq;
     }
     $where_clause = implode(' AND ', $where_conditions);
-
     // Se ajusta la lógica de ordenamiento para incluir el nuevo campo
     $orden_sql = ($orden_campo == 'categoria_nombre') ? 'c.nombre' : (($orden_campo == 'lugar_nombre') ? 'l.nombre' : (($orden_campo == 'pedidos_pendientes') ? 'pedidos_pendientes' : 'p.' . $orden_campo));
-
     // MODIFICACIÓN: Se agrega la subconsulta para obtener los pedidos pendientes
     $sql = "SELECT p.*, c.nombre as categoria_nombre, l.nombre as lugar_nombre,
     COALESCE((SELECT SUM(pd.cantidad)
@@ -80,7 +70,6 @@ try {
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $productos = $stmt->fetchAll();
-
     $count_sql = "SELECT COUNT(*)
     FROM productos p
     LEFT JOIN categorias c ON p.categoria_id = c.id
@@ -90,7 +79,6 @@ try {
     $count_stmt->execute($params);
     $total_productos = $count_stmt->fetchColumn();
     $total_pages = ceil($total_productos / $per_page);
-
     // Estadísticas
     $stats_sql = "SELECT
     COUNT(*) as total_productos,
@@ -99,9 +87,7 @@ try {
     COUNT(CASE WHEN stock <= stock_minimo THEN 1 END) as productos_bajo_stock
     FROM productos WHERE activo=1";
     $stats = $pdo->query($stats_sql)->fetch();
-
         $categorias = $pdo->query("SELECT id, nombre FROM categorias WHERE activo = 1 ORDER BY nombre")->fetchAll();
-
     $lugares = $pdo->query("SELECT id, nombre FROM lugares WHERE activo = 1 ORDER BY nombre")->fetchAll();
 } catch (Exception $e) {
     $error_message = "Error al cargar productos: " . $e->getMessage();
@@ -115,7 +101,6 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
 ?>
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title><?= htmlspecialchars($pageTitle) ?></title>
@@ -142,13 +127,11 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
         .table tbody td { border-top: none !important; border-bottom: none !important; padding: 5px 6px; vertical-align: middle; }
         .btn-action { padding: 3px 6px; margin: 0 1px; border-radius: 5px; font-size: 0.8rem; }
         .badge-categoria { font-size: 0.75rem; padding: 4px 8px; }
-
         /* Ajustes para anchos de columna */
         .table th:nth-child(2),
         .table td:nth-child(2) {
             white-space: nowrap;
         }
-
         .table th:nth-child(5),
         .table td:nth-child(5),
         .table th:nth-child(6),
@@ -158,13 +141,11 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
             width: 65px;
             text-align: right;
         }
-
         .table th:nth-child(5),
         .table th:nth-child(6),
         .table th:nth-child(7) {
             text-align: right !important;
         }
-
         .card .card-body {
             padding: 0.8rem 1rem;
         }
@@ -176,7 +157,6 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
         }
     </style>
 </head>
-
 <body>
     <?php include "../../config/navbar_code.php"; ?>
     <div class="main-container">
@@ -227,7 +207,6 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
     </div>
     </div>
     </div>
-
     <!-- Filtros y buscador -->
     <div class="bg-white rounded shadow p-3 mb-3">
         <form method="GET" class="row g-2 align-items-center">
@@ -268,10 +247,8 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
                     <a href="productos_por_categoria.php" class="btn btn-info"><i class="bi bi-tags me-1"></i> Por Categoría</a>
                     <a href="productos_por_lugar.php" class="btn btn-primary"><i class="bi bi-geo-alt me-1"></i> Por Ubicación</a>
                 </div>
-                
                 <!-- Center button -->
                 <a href="producto_form.php" class="btn btn-success btn-lg"><i class="bi bi-plus-circle me-1"></i>Nuevo Producto</a>
-
                 <!-- Right side buttons -->
                 <div>
                      <a href="productos_inactivos.php" class="btn btn-warning"><i class="bi bi-archive me-1"></i> Ver Inactivos</a>
@@ -279,13 +256,11 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
             </div>
         </div>
     </div>
-
     <!-- Tabla Listado de Productos -->
     <div class="table-container p-3">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
     <h4 class="mb-0"><i class="bi bi-list-ul me-2"></i>Lista de Productos</h4>
     <div class="d-flex gap-2">
-    
     <div class="btn-group">
     <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
     <i class="bi bi-file-earmark-excel"></i> Exportar
@@ -381,10 +356,8 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
     <td>
     <div class="btn-group" role="group">
     <a href="producto_form.php?id=<?= $prod['id'] ?>" class="btn btn-warning btn-action" title="Editar"><i class="bi bi-pencil"></i></a>
-    <a href="editform.php?id=<?= $prod['id'] ?>" class="btn btn-secondary btn-action" title="Editar Imagen"><i class="bi bi-image"></i></a>
     <a href="producto_detalle.php?id=<?= $prod['id'] ?>" class="btn btn-info btn-action" title="Ver Detalle"><i class="bi bi-eye"></i></a>
     <button onclick="inactivarProducto(<?= $prod['id'] ?>, '<?= htmlspecialchars(addslashes($prod['nombre'])) ?>')" class="btn btn-secondary btn-action" title="Inactivar"><i class="bi bi-archive"></i></button>
-    <button onclick="eliminarProducto(<?= $prod['id'] ?>, '<?= htmlspecialchars(addslashes($prod['nombre'])) ?>')" class="btn btn-danger btn-action" title="Eliminar"><i class="bi bi-trash"></i></button>
     </div>
     </td>
     </tr>
@@ -444,7 +417,6 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
     <?php endif; ?>
     </div>
     </div>
-
     <!-- Modal para Inactivar -->
     <div class="modal fade" id="modalInactivar" tabindex="-1">
     <div class="modal-dialog">
@@ -466,66 +438,24 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
     </div>
     </div>
     </div>
-
-    <!-- Modal para Eliminar -->
-    <div class="modal fade" id="modalEliminar" tabindex="-1">
-    <div class="modal-dialog">
-    <div class="modal-content">
-    <div class="modal-header bg-danger text-white">
-    <h5 class="modal-title">Confirmar Eliminación</h5>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-    </div>
-    <div class="modal-body">
-    <div class="alert alert-danger">
-    <i class="bi bi-exclamation-triangle me-2"></i>
-    <strong>¡Atención!</strong> Esta acción no se puede deshacer.
-    </div>
-    <p>¿Está seguro que desea eliminar definitivamente el producto <strong id="nombreProductoEliminar"></strong>?</p>
-    </div>
-    <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-    <button type="button" class="btn btn-danger" id="confirmarEliminar">
-    <i class="bi bi-trash me-1"></i>Eliminar Definitivamente
-    </button>
-    </div>
-    </div>
-    </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     let productoIdActual = null;
-
     function inactivarProducto(id, nombre) {
         productoIdActual = id;
         document.getElementById('nombreProductoInactivar').textContent = nombre;
         new bootstrap.Modal(document.getElementById('modalInactivar')).show();
     }
-
-    function eliminarProducto(id, nombre) {
-        productoIdActual = id;
-        document.getElementById('nombreProductoEliminar').textContent = nombre;
-        new bootstrap.Modal(document.getElementById('modalEliminar')).show();
-    }
-
     document.getElementById('confirmarInactivar').addEventListener('click', function() {
         if (productoIdActual) {
             gestionarProducto('inactivar', productoIdActual);
         }
     });
-
-    document.getElementById('confirmarEliminar').addEventListener('click', function() {
-        if (productoIdActual) {
-            gestionarProducto('eliminar', productoIdActual);
-        }
-    });
-
     function gestionarProducto(accion, id) {
-        const btn = accion === 'inactivar' ? document.getElementById('confirmarInactivar') : document.getElementById('confirmarEliminar');
+        const btn = document.getElementById('confirmarInactivar');
         const originalText = btn.innerHTML;
         btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Procesando...';
         btn.disabled = true;
-
         fetch('gestionar_producto.php', {
             method: 'POST',
             headers: {
@@ -539,23 +469,20 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const modalId = accion === 'inactivar' ? 'modalInactivar' : 'modalEliminar';
+                const modalId = 'modalInactivar';
                 bootstrap.Modal.getInstance(document.getElementById(modalId)).hide();
                 mostrarMensaje(data.message, 'success');
                 setTimeout(() => window.location.reload(), 700);
             } else {
-                // Mostrar mensaje de error específico
                 mostrarMensaje(data.message || 'Error desconocido', 'danger');
-                // Cerrar el modal si hay error
-                const modalId = accion === 'inactivar' ? 'modalInactivar' : 'modalEliminar';
+                const modalId = 'modalInactivar';
                 bootstrap.Modal.getInstance(document.getElementById(modalId)).hide();
             }
         })
         .catch(error => {
             console.error('Error:', error);
             mostrarMensaje('Error al procesar la solicitud.', 'danger');
-            // Cerrar el modal si hay error
-            const modalId = accion === 'inactivar' ? 'modalInactivar' : 'modalEliminar';
+            const modalId = 'modalInactivar';
             bootstrap.Modal.getInstance(document.getElementById(modalId)).hide();
         })
         .finally(() => {
@@ -563,7 +490,6 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
             btn.disabled = false;
         });
     }
-
     function mostrarMensaje(mensaje, tipo) {
         const alertContainer = document.createElement('div');
         alertContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1056; min-width: 300px;';
@@ -580,5 +506,4 @@ $pageTitle = "Gestión de Productos - " . SISTEMA_NOMBRE;
     }
     </script>
 </body>
-
 </html>

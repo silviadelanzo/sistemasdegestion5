@@ -116,6 +116,16 @@ $usuario_nombre = $_SESSION['nombre_usuario'] ?? 'Usuario';
             let fecha = new Date();
             cargarCalendario(fecha.getMonth() + 1, fecha.getFullYear());
 
+            document.getElementById('calendario-container').addEventListener('click', function(event) {
+                let target = event.target.closest('a'); // Find the closest anchor tag
+                if (target && (target.classList.contains('nav-link-prev') || target.classList.contains('nav-link-next'))) {
+                    event.preventDefault();
+                    const mes = target.dataset.mes;
+                    const anio = target.dataset.anio;
+                    cargarCalendario(mes, anio);
+                }
+            });
+
             // --- CHARTS ---
             const annualCtx = document.getElementById('annualSalesChart').getContext('2d');
             new Chart(annualCtx, { type: 'line', data: { labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'], datasets: [{ label: 'Ventas Anuales', data: [1200, 1900, 3000, 5000, 2300, 3100, 4000, 3500, 4500, 6000, 5500, 7000], backgroundColor: 'rgba(0, 123, 255, 0.1)', borderColor: 'rgba(0, 123, 255, 1)', tension: 0.3, fill: true }] } });
