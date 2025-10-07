@@ -1,114 +1,35 @@
 <?php
 require_once '../../config/config.php';
+require_once '../../api/api_client.php';
 iniciarSesionSegura();
 requireLogin('../../login.php');
 header('Content-Type: text/html; charset=UTF-8');
 
-// --- Lógica de Paginación y Filtros para Órdenes de Compra ---
-$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-$per_page = 25;
-$offset = ($page - 1) * $per_page;
-
-// Filtros
-$filtro_busqueda    = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
-$filtro_proveedor   = isset($_GET['proveedor']) ? trim($_GET['proveedor']) : '';
-$filtro_fecha_desde = isset($_GET['fecha_desde']) && !empty($_GET['fecha_desde']) ? $_GET['fecha_desde'] : '';
-$filtro_fecha_hasta = isset($_GET['fecha_hasta']) && !empty($_GET['fecha_hasta']) ? $_GET['fecha_hasta'] : '';
-
-// Ordenamiento
-$orden_campo = isset($_GET['orden']) ? $_GET['orden'] : 'numero_orden';
-$orden_direccion = isset($_GET['dir']) && $_GET['dir'] === 'asc' ? 'ASC' : 'DESC';
-$campos_permitidos = ['numero_orden', 'proveedor_nombre', 'fecha_orden', 'estado_id'];
-if (!in_array($orden_campo, $campos_permitidos)) {
-    $orden_campo = 'numero_orden';
-}
-
-$usuario_nombre = $_SESSION['nombre_usuario'] ?? 'Usuario';
-
-$error_message = '';
-$debug_output = '';
-
+// --- Lógica de obtención de datos vía API ---
 try {
-    $pdo = conectarDB();
-    $pdo->exec("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci");
+    $data = llamar_api('compras/compras.php', $_GET);
 
-    // --- Construcción de la consulta con filtros ---
-    $params = [];
-    $sql_base = "FROM oc_ordenes oc LEFT JOIN proveedores p ON oc.proveedor_id = p.id LEFT JOIN oc_estados es ON oc.estado_id = es.id_estado";
+    $ordenes_compra = $data['ordenes_compra'];
+    $paginacion = $data['paginacion'];
+    $stats = $data['stats'];
+    $proveedores = $data['proveedores'];
+
+    $page = $paginacion['page'];
+    $total_pages = $paginacion['total_pages'];
+    $ordenes_compra_filtradas = $paginacion['total_records'];
     
-    $where_conditions = [];
+    $total_ordenes_compra = $stats['total'];
+    $ordenes_pendientes = $stats['counts']['pendiente de entrega'] ?? 0;
+    $ordenes_parcial = $stats['counts']['parcialmente entregada'] ?? 0;
+    $ordenes_entregadas = $stats['counts']['entregada'] ?? 0;
+    $ordenes_canceladas = $stats['counts']['cancelada'] ?? 0;
+    $valor_total_ordenes_compra = $stats['valor_total'];
 
-    if ($filtro_busqueda !== '') {
-        $where_conditions[] = "(oc.numero_orden LIKE :busqueda OR p.razon_social LIKE :busqueda)";
-        $params[':busqueda'] = "%{$filtro_busqueda}%";
-    }
-    if ($filtro_proveedor !== '' && $filtro_proveedor !== 'todos') {
-        $where_conditions[] = "oc.proveedor_id = :proveedor";
-        $params[':proveedor'] = $filtro_proveedor;
-    }
-    if ($filtro_fecha_desde !== '') {
-        $where_conditions[] = "oc.fecha_orden >= :fecha_desde";
-        $params[':fecha_desde'] = $filtro_fecha_desde;
-    }
-    if ($filtro_fecha_hasta !== '') {
-        $where_conditions[] = "oc.fecha_orden <= :fecha_hasta";
-        $params[':fecha_hasta'] = $filtro_fecha_hasta;
-    }
-
-    $where_clause = $where_conditions ? ' WHERE ' . implode(' AND ', $where_conditions) : '';
-
-    // --- Consulta para obtener los datos de oc_ordenes ---
-    $sql = "SELECT oc.id_orden, oc.numero_orden, p.razon_social as proveedor_nombre, oc.fecha_orden, es.nombre_estado, oc.estado_id, oc.total "
-        . $sql_base
-        . $where_clause;
-
-    if ($orden_campo === 'proveedor_nombre') {
-        $sql .= " ORDER BY p.razon_social {$orden_direccion} ";
-    } else {
-        $sql .= " ORDER BY oc.{$orden_campo} {$orden_direccion} ";
-    }
-
-    $sql .= " LIMIT {$per_page} OFFSET {$offset}";
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $ordenes_compra = $stmt->fetchAll();
-
-    // --- Conteo total de oc_ordenes ---
-    $count_sql = "SELECT COUNT(oc.id_orden) " . $sql_base . $where_clause;
-    $count_stmt = $pdo->prepare($count_sql);
-    $count_stmt->execute($params);
-    $ordenes_compra_filtradas = $count_stmt->fetchColumn();
-    $total_pages = $ordenes_compra_filtradas > 0 ? ceil($ordenes_compra_filtradas / $per_page) : 1;
-
-    // --- Datos para tarjetas y filtros (actualizados para oc_ordenes) ---
-    $estados_raw = $pdo->query("SELECT id_estado, nombre_estado FROM oc_estados")->fetchAll(PDO::FETCH_ASSOC);
-    $map_estados = [];
-    foreach ($estados_raw as $estado) {
-        $map_estados[trim(strtolower($estado['nombre_estado']))] = $estado['id_estado'];
-    }
-
-    // IDs para cada estado que nos interesa, usando los nombres correctos de la DB
-    $id_pendiente   = $map_estados['pendiente de entrega'] ?? 0;
-    $id_parcial     = $map_estados['parcialmente entregada'] ?? 0;
-    $id_entregada   = $map_estados['entregada'] ?? 0;
-    $id_cancelada   = $map_estados['cancelada'] ?? 0;
-
-    // Se obtienen todos los conteos en una sola consulta para mayor eficiencia
-    $counts_query = $pdo->query("SELECT estado_id, COUNT(id_orden) as count FROM oc_ordenes GROUP BY estado_id");
-    $counts_by_id = $counts_query->fetchAll(PDO::FETCH_KEY_PAIR);
-
-    $total_ordenes_compra = (int) array_sum($counts_by_id);
-    $ordenes_pendientes   = (int) ($counts_by_id[$id_pendiente] ?? 0);
-    $ordenes_parcial      = (int) ($counts_by_id[$id_parcial] ?? 0);
-    $ordenes_entregadas   = (int) ($counts_by_id[$id_entregada] ?? 0);
-    $ordenes_canceladas   = (int) ($counts_by_id[$id_cancelada] ?? 0);
-    $valor_total_ordenes_compra  = (float) $pdo->query("SELECT COALESCE(SUM(total), 0) FROM oc_ordenes")->fetchColumn();
-    $proveedores = $pdo->query("SELECT id, razon_social FROM proveedores WHERE activo = 1 ORDER BY razon_social")->fetchAll();
 } catch (Exception $e) {
-    $error_message = "Error al cargar datos: " . $e->getMessage();
+    $error_message = "Error al cargar datos desde el API: " . $e->getMessage();
     $ordenes_compra = [];
     $total_pages = 1;
+    $page = 1;
     $total_ordenes_compra = 0;
     $valor_total_ordenes_compra = 0;
     $proveedores = [];
@@ -118,7 +39,16 @@ try {
     $ordenes_canceladas = 0;
 }
 
+// --- Variables para la vista ---
+$filtro_busqueda    = isset($_GET['busqueda']) ? trim($_GET['busqueda']) : '';
+$filtro_proveedor   = isset($_GET['proveedor']) ? trim($_GET['proveedor']) : '';
+$filtro_fecha_desde = isset($_GET['fecha_desde']) ? $_GET['fecha_desde'] : '';
+$filtro_fecha_hasta = isset($_GET['fecha_hasta']) ? $_GET['fecha_hasta'] : '';
+$orden_campo = isset($_GET['orden']) ? $_GET['orden'] : 'numero_orden';
+$orden_direccion = isset($_GET['dir']) && $_GET['dir'] === 'asc' ? 'ASC' : 'DESC';
+$usuario_nombre = $_SESSION['nombre_usuario'] ?? 'Usuario';
 $pageTitle = "Gestión de Compras - " . SISTEMA_NOMBRE;
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -153,7 +83,7 @@ $pageTitle = "Gestión de Compras - " . SISTEMA_NOMBRE;
     <?php include "../../config/navbar_code.php"; ?>
     <div class="main-container">
         <?php if (!empty($error_message)):
-            echo '<div class="alert alert-danger"><strong>Error de base de datos:</strong> ' . htmlspecialchars($error_message) . '</div>';
+            echo '<div class="alert alert-danger"><strong>Error:</strong> ' . htmlspecialchars($error_message) . '</div>';
         endif; ?>
         <!-- Tarjetas resumen -->
         <div class="info-cards">
@@ -231,10 +161,10 @@ $pageTitle = "Gestión de Compras - " . SISTEMA_NOMBRE;
                 <table class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
-                            <th><a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'numero_orden', 'dir' => ($orden_campo === 'numero_orden' && $orden_direccion === 'ASC') ? 'DESC' : 'ASC'])) ?>">Nro. Orden <i class="bi <?= ($orden_campo === 'numero_orden') ? (($orden_direccion === 'ASC') ? 'bi-arrow-up' : 'bi-arrow-down') : '' ?>"></i></a></th>
-                            <th><a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'proveedor_nombre', 'dir' => ($orden_campo === 'proveedor_nombre' && $orden_direccion === 'ASC') ? 'DESC' : 'ASC'])) ?>">Proveedor <i class="bi <?= ($orden_campo === 'proveedor_nombre') ? (($orden_direccion === 'ASC') ? 'bi-arrow-up' : 'bi-arrow-down') : '' ?>"></i></a></th>
-                            <th><a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'fecha_orden', 'dir' => ($orden_campo === 'fecha_orden' && $orden_direccion === 'ASC') ? 'DESC' : 'ASC'])) ?>">Fecha <i class="bi <?= ($orden_campo === 'fecha_orden') ? (($orden_direccion === 'ASC') ? 'bi-arrow-up' : 'bi-arrow-down') : '' ?>"></i></a></th>
-                            <th><a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'estado_id', 'dir' => ($orden_campo === 'estado_id' && $orden_direccion === 'ASC') ? 'DESC' : 'ASC'])) ?>">Estado <i class="bi <?= ($orden_campo === 'estado_id') ? (($orden_direccion === 'ASC') ? 'bi-arrow-up' : 'bi-arrow-down') : '' ?>"></i></a></th>
+                            <th><a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'numero_orden', 'dir' => ($orden_campo === 'numero_orden' && $orden_direccion === 'ASC') ? 'DESC' : 'ASC'])) ?>>Nro. Orden <i class="bi <?= ($orden_campo === 'numero_orden') ? (($orden_direccion === 'ASC') ? 'bi-arrow-up' : 'bi-arrow-down') : '' ?>></i></a></th>
+                            <th><a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'proveedor_nombre', 'dir' => ($orden_campo === 'proveedor_nombre' && $orden_direccion === 'ASC') ? 'DESC' : 'ASC'])) ?>>Proveedor <i class="bi <?= ($orden_campo === 'proveedor_nombre') ? (($orden_direccion === 'ASC') ? 'bi-arrow-up' : 'bi-arrow-down') : '' ?>></i></a></th>
+                            <th><a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'fecha_orden', 'dir' => ($orden_campo === 'fecha_orden' && $orden_direccion === 'ASC') ? 'DESC' : 'ASC'])) ?>>Fecha <i class="bi <?= ($orden_campo === 'fecha_orden') ? (($orden_direccion === 'ASC') ? 'bi-arrow-up' : 'bi-arrow-down') : '' ?>></i></a></th>
+                            <th><a href="?<?= http_build_query(array_merge($_GET, ['orden' => 'estado_id', 'dir' => ($orden_campo === 'estado_id' && $orden_direccion === 'ASC') ? 'DESC' : 'ASC'])) ?>>Estado <i class="bi <?= ($orden_campo === 'estado_id') ? (($orden_direccion === 'ASC') ? 'bi-arrow-up' : 'bi-arrow-down') : '' ?>></i></a></th>
                             <th class="text-end">Total</th>
                             <th>Acciones</th>
                         </tr>
@@ -244,7 +174,7 @@ $pageTitle = "Gestión de Compras - " . SISTEMA_NOMBRE;
                             echo '<tr><td colspan="6" class="text-center py-4"><i class="bi bi-inbox display-4 text-muted"></i><p class="text-muted mt-2">No se encontraron órdenes de compra.</p></td></tr>';
                         else:
                             foreach ($ordenes_compra as $orden):
-                                echo '<tr>';
+                                echo '<tr id="orden-compra-' . $orden['id_orden'] . '">';
                                 echo '<td><code class="text-primary">' . htmlspecialchars($orden['numero_orden']) . '</code></td>';
                                 echo '<td><div class="fw-bold text-truncate">' . htmlspecialchars($orden['proveedor_nombre']) . '</div></td>';
                                 echo '<td>' . date('d/m/Y', strtotime($orden['fecha_orden'])) . '</td>';
@@ -253,11 +183,11 @@ $pageTitle = "Gestión de Compras - " . SISTEMA_NOMBRE;
                                             $clase_badge = 'bg-secondary';
                                             $nombre_normalizado = trim(strtolower($estado_nombre));
 
-                                            if ($nombre_normalizado == 'pendiente') { $clase_badge = 'bg-warning text-dark'; }
-                                            elseif ($nombre_normalizado == 'confirmada') { $clase_badge = 'bg-info'; }
-                                            elseif ($nombre_normalizado == 'entregada' || $nombre_normalizado == 'recibida') { $clase_badge = 'bg-success'; }
-                                            elseif ($nombre_normalizado == 'cancelada') { $clase_badge = 'bg-danger'; }
-                                            elseif ($nombre_normalizado == 'parcialmente entregada' || $nombre_normalizado == 'parcial') { $clase_badge = 'bg-primary'; }
+                                            if ($nombre_normalizado == 'pendiente') { $clase_badge = 'bg-warning text-dark'; } 
+                                            elseif ($nombre_normalizado == 'confirmada') { $clase_badge = 'bg-info'; } 
+                                            elseif ($nombre_normalizado == 'entregada' || $nombre_normalizado == 'recibida') { $clase_badge = 'bg-success'; } 
+                                            elseif ($nombre_normalizado == 'cancelada') { $clase_badge = 'bg-danger'; } 
+                                            elseif ($nombre_normalizado == 'parcialmente entregada' || $nombre_normalizado == 'parcial') { $clase_badge = 'bg-primary'; } 
                                             
                                             echo "<span class=\"badge {$clase_badge}\">" . htmlspecialchars($estado_nombre) . "</span>";
                                 echo '</td>';
@@ -267,7 +197,8 @@ $pageTitle = "Gestión de Compras - " . SISTEMA_NOMBRE;
                                 echo '<a href="compra_form.php?id=' . $orden['id_orden'] . '" class="btn btn-sm btn-warning" title="Editar"><i class="bi bi-pencil"></i></a>';
                                 echo '<a href="compra_detalle.php?id=' . $orden['id_orden'] . '" class="btn btn-sm btn-info" title="Ver Detalle"><i class="bi bi-eye"></i></a>';
                                 echo '<a href="compra_imprimir.php?id=' . $orden['id_orden'] . '" class="btn btn-sm btn-secondary" title="Imprimir" target="_blank"><i class="bi bi-printer"></i></a>';
-                                echo '<a href="gestionar_compra.php?id=' . $orden['id_orden'] . '&accion=eliminar" class="btn btn-sm btn-danger" title="Eliminar" onclick="return confirm(\'¿Eliminar la orden de compra?\');"><i class="bi bi-trash"></i></a>';
+                                $numeroOrden = !empty($orden['numero_orden']) ? $orden['numero_orden'] : 'ID: ' . $orden['id_orden'];
+                                echo '<button type="button" class="btn btn-sm btn-danger" title="Eliminar" onclick="eliminarOrdenCompra(' . $orden['id_orden'] . ', \''. htmlspecialchars($numeroOrden) .'\');"><i class="bi bi-trash"></i></button>';
                                 echo '</div>';
                                 echo '</td>';
                                 echo '</tr>';
@@ -296,6 +227,92 @@ $pageTitle = "Gestión de Compras - " . SISTEMA_NOMBRE;
             endif; ?>
         </div>
     </div>
+    <!-- Modal para Eliminar Orden de Compra -->
+    <div class="modal fade" id="modalEliminarCompra" tabindex="-1" aria-labelledby="modalEliminarCompraLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="modalEliminarCompraLabel"><i class="bi bi-trash me-2"></i>Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Estás seguro de que deseas eliminar la orden de compra Nro. <strong id="numeroOrdenEliminar"></strong>?</p>
+                    <p class="text-danger">Esta acción no se puede deshacer y eliminará todos los detalles asociados.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmarEliminarCompra"><i class="bi bi-trash me-2"></i>Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let ordenCompraIdActual = null;
+        let modalEliminarCompra = new bootstrap.Modal(document.getElementById('modalEliminarCompra'));
+
+        function eliminarOrdenCompra(id, numeroOrden) {
+            ordenCompraIdActual = id;
+            // Validar que numeroOrden no sea undefined, null o vacío
+            const numeroMostrar = numeroOrden && numeroOrden !== 'undefined' ? numeroOrden : 'ID: ' + id;
+            document.getElementById('numeroOrdenEliminar').textContent = numeroMostrar;
+            modalEliminarCompra.show();
+        }
+
+        document.getElementById('confirmarEliminarCompra').addEventListener('click', function() {
+            if (ordenCompraIdActual) {
+                gestionarCompra('eliminar', ordenCompraIdActual);
+            }
+        });
+
+        function gestionarCompra(accion, id) {
+            const btn = document.getElementById('confirmarEliminarCompra');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Procesando...';
+            btn.disabled = true;
+
+            fetch(`../../api/compras/compras.php?id=${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                modalEliminarCompra.hide();
+                if (result.status === 'success') {
+                    mostrarMensaje(result.data.message, 'success');
+                    const fila = document.getElementById('orden-compra-' + id);
+                    if (fila) {
+                        fila.remove();
+                    }
+                } else {
+                    mostrarMensaje(result.message || 'Error desconocido', 'danger');
+                }
+            })
+            .catch(error => {
+                modalEliminarCompra.hide();
+                console.error('Error:', error);
+                mostrarMensaje('Error al procesar la solicitud.', 'danger');
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        function mostrarMensaje(mensaje, tipo) {
+            const alertContainer = document.createElement('div');
+            alertContainer.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1056; min-width: 300px;';
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+            alertDiv.innerHTML = `<i class="bi bi-${tipo === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill'} me-2"></i>${mensaje}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+            alertContainer.appendChild(alertDiv);
+            document.body.appendChild(alertContainer);
+            new bootstrap.Alert(alertDiv);
+            setTimeout(() => { alertDiv.classList.remove('show'); setTimeout(() => alertContainer.remove(), 150); }, 5000);
+        }
+    </script>
 </body>
 </html>
